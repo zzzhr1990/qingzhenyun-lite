@@ -34,6 +34,7 @@ private:
     wxTextCtrl * passwordInput = nullptr;
     wxButton * okBtn = nullptr;
     wxTextCtrl * userInput = nullptr;
+	wxStaticText * infoText = nullptr;
 };
 
 

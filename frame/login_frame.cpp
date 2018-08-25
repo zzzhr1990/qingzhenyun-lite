@@ -16,16 +16,17 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
 
     /**< hbox1 */
 
-    // wxBoxSizer * hbox1 = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer * hbox1 = new wxBoxSizer(wxHORIZONTAL);
     //(*
-    /*
-    wxStaticText * st1 = new wxStaticText(panel, wxID_ANY, _T("CLass Name"));
-    hbox1->Add(st1, 0, wxRIGHT, 8);
-    wxTextCtrl * tc = new wxTextCtrl(panel, wxID_ANY);
-    hbox1->Add(tc, 1);
+    
+    //wxStaticText * st1 = new wxStaticText(panel, wxID_ANY, _T("CLass Name"));
+    //hbox1->Add(st1, 0, wxRIGHT, 8);
+	infoText = new wxStaticText(panel, wxID_ANY, _T("Login"),wxDefaultPosition,wxDefaultSize,wxALIGN_CENTER_HORIZONTAL);
+    //wxTextCtrl * tc = new wxTextCtrl(panel, wxID_ANY);
+    hbox1->Add(infoText, 1);
     vbox->Add(hbox1, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
-    vbox->Add(-1, 10); // 10 pix space
-     */
+    //vbox->Add(-1, 10); // 10 pix space
+     
     //*)
 
 
@@ -39,10 +40,15 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
     vbox->Add(-1, 10);
      */
     //*)
+	//wxBoxSizer * hbox2 = new wxBoxSizer(wxHORIZONTAL);
+	//(*
+	//wxStaticText * st2 = new wxStaticText(panel, wxID_ANY, _T("User Login"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL | wxALL | wxEXPAND);
+	//hbox2->Add(st2, 0);
+	//vbox->Add(hbox2, 0, wxLEFT | wxTOP, 10);
 
     /**< hbox3 */
-
-    vbox->Add(-1, 10);
+	//wxStaticText * review = new wxStaticText(panel, wxID_ANY, _T("Review"));
+    //vbox->Add(review);
     auto * hbox3 = new wxBoxSizer(wxHORIZONTAL);
     //(*
     /*
@@ -148,7 +154,9 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
     auto success = event.GetInt() > 0;
     if(!success){
         UnlockInterface();
-        // this->SetStatusText("Login failed.");
+		infoText->SetLabelText(_T("Login failed, check your account."));
+		// infoText->SetWindowStyle(wxALIGN_CENTER_HORIZONTAL);
+		// infoText->Refresh();
     }else{
         UnlockInterface();
         passwordInput->SetValue(wxEmptyString);
@@ -156,6 +164,7 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
         // this->SetStatusText("Login success.");
         auto payload = event.GetPayload<web::json::value>();
         UserModel::instance().on_user_login(payload);
+		infoText->SetLabelText(_T("Login"));
         this->Close();
     }
 }
@@ -163,5 +172,7 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
 void LoginFrame::OnClose(wxCloseEvent& event) {
 	UnlockInterface();
 	event.Veto();
+	infoText->SetLabelText(_T("Login"));
 	this->Show(false);
+
 }
