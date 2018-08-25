@@ -18,27 +18,21 @@ task<web::json::value> CommonApi::post_data(const std::string & uri,const web::j
     uri_builder login_uri(U(uri));
     request.set_request_uri(login_uri.to_string());
     request.headers().add(header_names::accept, U("application/json"));
-    request.headers().add(header_names::accept, U("application/json"));
     request.headers().add(header_names::content_type, U("application/json"));
     request.set_body(data);
     auto resp = raw_client.request(request).then([](http_response response){
         return response.extract_json();
-    }).then([&](web::json::value v) -> task<web::json::value>{
-        // utility::stringstream_t stream;
-        // v.serialize(stream);
-        // std::cout << stream.str() << std::endl;
+    }).then([&return_result](web::json::value &v){
         if(!return_result){
-            return create_task([=](){ return v;});
+            return create_task([&v](){ return v;});
         }
 
         auto success = v[U("success")].as_bool();
         if(!success){
-            return create_task([](){ return (web::json::value)nullptr;});
+            return create_task([](){
+                return web::json::value();
+            });
         }
-        // utility::stringstream_t stream;
-        // v.serialize(stream);
-        // wxLogMessage("Access Login:%d\n", success.as_bool());
-        // wxLogMessage("Access Login Response :%s\n", stream.str());
         auto res = v[U("result")];
         return create_task([res](){ return res;});
     },task_continuation_context::use_default());

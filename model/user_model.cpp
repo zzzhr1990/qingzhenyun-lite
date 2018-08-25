@@ -33,10 +33,10 @@ wxThread::ExitCode MyWorkerThread::Entry()
 pplx::task<web::json::value> UserModel::check_login(std::string &value, std::string& password) {
     using namespace web;
     web::json::value json_v;
-    json_v[U("value")] = web::json::value::string(U(value));
-    json_v[U("password")] = web::json::value::string(U(password));
+    json_v[U("value")] = web::json::value::string(U(utility::conversions::to_utf8string(value)));
+    json_v[U("password")] = web::json::value::string(U(utility::conversions::to_utf8string(password)));
     // new thread ?
-    std::cout << value << std::endl;
+    // std::cout << value << std::endl;
     return this->common_api.post_data("/v1/user/login",json_v);
 
 }
