@@ -46,7 +46,7 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
 
     this->Connect(timer_id, wxEVT_THREAD, wxThreadEventHandler(MainFrame::OnThreadEvent));
     //EVT WINDOW CREATE(ShapedFrame::OnWindowCreate)
-    this->Connect(wxEVT_CREATE, wxWindowCreateEventHandler(MainFrame::OnWindowCreate));
+    this->Connect(wxEVT_IDLE, wxIdleEventHandler(MainFrame::OnWindowCreate));
     // this->Connect(wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnUserCheckingTimerEvent));
     // wxCloseEventHandler(LogFrame::OnClose)
     UserModel::instance().start_user_check_loop(this);
@@ -63,18 +63,24 @@ void MainFrame::OnClose(wxCloseEvent& event){
     UserModel::instance().terminate();
 }
 
-void MainFrame::OnWindowCreate(wxWindowCreateEvent& WXUNUSED(event)){
+void MainFrame::OnWindowCreate(wxIdleEvent& WXUNUSED(event)){
     // event.Skip();
     // user_model->terminate();
-    this->Disconnect(wxEVT_CREATE, wxWindowCreateEventHandler(MainFrame::OnWindowCreate));
-    auto login_frame = new LoginFrame(this, wxID_ANY);
-    login_frame->Iconize(false);
-    // login_frame->Show(true);
-    login_frame->Raise();  // doesn't seem to work
-    login_frame->SetFocus();  // does nothing
-    login_frame->Show(true); // this by itself doesn't work
-    login_frame->RequestUserAttention();
+    this->Disconnect(wxEVT_IDLE, wxIdleEventHandler(MainFrame::OnWindowCreate));
+	showLoginFrame();
+}
 
+void MainFrame::showLoginFrame(){
+	if (this->login_frame == nullptr) {
+		login_frame = new LoginFrame(this, wxID_ANY);
+		login_frame->Iconize(false);
+	}
+	
+	// login_frame->Show(true);
+	login_frame->Raise();  // doesn't seem to work
+	login_frame->SetFocus();  // does nothing
+	login_frame->ShowModal(); // this by itself doesn't work
+	login_frame->RequestUserAttention();
 }
 
 void MainFrame::OnThreadEvent(wxThreadEvent& event)

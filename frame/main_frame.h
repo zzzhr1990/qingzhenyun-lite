@@ -27,7 +27,7 @@ public:
     ~MainFrame() final {
         //delete fileMenu;
         //delete helpMenu;
-        delete logFrame;
+        // delete logFrame;
         // delete user_model;
     }
 
@@ -37,7 +37,8 @@ public:
     void ShowLogWindow(wxCommandEvent& event);
     void OnThreadEvent(wxThreadEvent& event);
     void OnClose(wxCloseEvent& event);
-    void OnWindowCreate(wxWindowCreateEvent& event);
+    void OnWindowCreate(wxIdleEvent& event);
+	void showLoginFrame();
     // void OnUserCheckingTimerEvent(wxTimerEvent& event);
     // void CloseLogWindow(wxCloseEvent& event);
 
@@ -48,6 +49,8 @@ private:
     wxMenu *helpMenu = nullptr;
 
     LogFrame * logFrame = nullptr;
+
+	LoginFrame *login_frame = nullptr;
 
     // UserModel * user_model = nullptr;
 

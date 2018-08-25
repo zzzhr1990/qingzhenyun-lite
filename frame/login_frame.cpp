@@ -8,7 +8,7 @@
 
 // #pragma clang diagnostic push
 // #pragma ide diagnostic ignored "bugprone-suspicious-enum-usage"
-LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxFrame( parent, id, "User Login", wxDefaultPosition, wxSize(400, 200)) {
+LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, "User Login", wxDefaultPosition, wxSize(400, 200), wxDEFAULT_DIALOG_STYLE | wxTAB_TRAVERSAL) {
     wxPanel * panel = new wxPanel(this, wxID_ANY);
 
     /**< Main sizer */
@@ -94,26 +94,34 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxFrame( parent, id, "
     //(*
     okBtn = new wxButton(panel, wxID_ANY, _T("OK"));
     hbox5->Add(okBtn, 0);
-    wxButton * btn2 = new wxButton(panel, wxID_ANY, _T("Close"));
-    hbox5->Add(btn2, 0, wxLEFT | wxBOTTOM, 15);
+    wxButton * closeBtn = new wxButton(panel, wxID_ANY, _T("Close"));
+    hbox5->Add(closeBtn, 0, wxLEFT | wxBOTTOM, 15);
     vbox->Add(hbox5, 0, wxALIGN_RIGHT | wxRIGHT, 10);
     //*)
     panel->SetSizer(vbox);
+	this->Connect(this->GetId(), wxEVT_CLOSE_WINDOW, wxCloseEventHandler(LoginFrame::OnClose));
     this->Connect(okBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnOkBtnClicked));
+	this->Connect(closeBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnCloseBtnClicked));
     this->Connect(this->GetId(),wxEVT_THREAD, wxThreadEventHandler(LoginFrame::OnThreadEvent));
-    this->CreateStatusBar();
+    // this->CreateStatusBar();
 }
 //#pragma clang diagnostic pop
 
 void LoginFrame::OnOkBtnClicked(wxMouseEvent & WXUNUSED(event)) {
-    this->SetStatusText("Requesting remote server...");
+    // this->SetStatusText("Requesting remote server...");
     LockInterface();
     // CommonApi::instance()::post_data(U("/v1/user/login"),)
 }
 
+void LoginFrame::OnCloseBtnClicked(wxMouseEvent & WXUNUSED(event)) {
+	// this->SetStatusText("Requesting remote server...");
+	this->Close();
+	// CommonApi::instance()::post_data(U("/v1/user/login"),)
+}
+
 void LoginFrame::LockInterface() {
-    std::string x = this->userInput->GetValue();
-    std::string password = this->passwordInput->GetValue();
+    std::string x = this->userInput->GetValue().ToUTF8();
+	std::string password = this->passwordInput->GetValue().ToUTF8();
     passwordInput->Enable(false);
     okBtn->Enable(false);
     userInput->Enable(false);
@@ -140,14 +148,20 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
     auto success = event.GetInt() > 0;
     if(!success){
         UnlockInterface();
-        this->SetStatusText("Login failed.");
+        // this->SetStatusText("Login failed.");
     }else{
         UnlockInterface();
         passwordInput->SetValue(wxEmptyString);
         userInput->SetValue(wxEmptyString);
-        this->SetStatusText("Login success.");
+        // this->SetStatusText("Login success.");
         auto payload = event.GetPayload<web::json::value>();
         UserModel::instance().on_user_login(payload);
         this->Close();
     }
+}
+
+void LoginFrame::OnClose(wxCloseEvent& event) {
+	UnlockInterface();
+	event.Veto();
+	this->Show(false);
 }

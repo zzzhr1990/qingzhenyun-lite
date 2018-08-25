@@ -14,18 +14,20 @@
 #include "wx/wx.h"
 #endif
 
-class LoginFrame : public wxFrame{
+class LoginFrame : public wxDialog {
 public:
     LoginFrame(wxWindow* parent, wxWindowID id);
     ~LoginFrame(){
-        delete passwordInput;
-        delete okBtn;
-        delete userInput;
+        // delete passwordInput;
+        // delete okBtn;
+        // delete userInput;
     }
 
 private:
     void OnOkBtnClicked(wxMouseEvent &event);
+	void OnCloseBtnClicked(wxMouseEvent & WXUNUSED);
     void OnThreadEvent(wxThreadEvent& event);
+	void OnClose(wxCloseEvent & event);
     void LockInterface();
     void UnlockInterface();
 
