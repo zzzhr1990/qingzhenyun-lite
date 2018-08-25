@@ -33,11 +33,12 @@ wxThread::ExitCode MyWorkerThread::Entry()
 pplx::task<web::json::value> UserModel::check_login(std::string &value, std::string& password) {
     using namespace web;
     web::json::value json_v;
-    json_v[U("value")] = web::json::value::string(U(utility::conversions::to_utf8string(value)));
-    json_v[U("password")] = web::json::value::string(U(utility::conversions::to_utf8string(password)));
+	std::string cc = "";
+    json_v[U("value")] = web::json::value::string(utility::conversions::to_string_t(value));
+    json_v[U("password")] = web::json::value::string(utility::conversions::to_string_t(password));
     // new thread ?
     // std::cout << value << std::endl;
-    return this->common_api.post_data("/v1/user/login",json_v);
+    return this->common_api.post_data("/v1/user/login",json_v,false);
 
 }
 
@@ -112,7 +113,7 @@ void UserModel::check_login(wxWindow& handler, std::string &value, std::string &
 
 void UserModel::on_user_login(web::json::value &user_json) {
     // std::cout << "Token:" << user_json[U("token")] << std::endl;
-    this->current_token = user_json[U("token")].as_string();
+    this->current_token = utility::conversions::to_utf8string(user_json[U("token")].as_string());
 };
 
 UserModel::~UserModel() = default;

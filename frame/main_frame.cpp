@@ -13,12 +13,12 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
 
 
     // create a menu bar
-    wxMenu *fileMenu = new wxMenu;
+    fileMenu = new wxMenu();
 
 
 
     // the "About" item should be in the help menu
-    auto *helpMenu = new wxMenu;
+    helpMenu = new wxMenu();
 
     helpMenu->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
 
@@ -63,7 +63,7 @@ void MainFrame::OnClose(wxCloseEvent& event){
     UserModel::instance().terminate();
 }
 
-void MainFrame::OnWindowCreate(wxWindowCreateEvent& event){
+void MainFrame::OnWindowCreate(wxWindowCreateEvent& WXUNUSED(event)){
     // event.Skip();
     // user_model->terminate();
     this->Disconnect(wxEVT_CREATE, wxWindowCreateEventHandler(MainFrame::OnWindowCreate));

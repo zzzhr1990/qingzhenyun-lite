@@ -9,7 +9,7 @@
 // #pragma clang diagnostic push
 // #pragma ide diagnostic ignored "bugprone-suspicious-enum-usage"
 LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxFrame( parent, id, "User Login", wxDefaultPosition, wxSize(400, 200)) {
-    //wxPanel * panel = new wxPanel(this, wxID_ANY);
+    wxPanel * panel = new wxPanel(this, wxID_ANY);
 
     /**< Main sizer */
     auto * vbox = new wxBoxSizer(wxVERTICAL);
@@ -51,11 +51,11 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxFrame( parent, id, "
     hbox3->Add(tc2, 1, wxCENTER);
      */
     auto * fgs = new wxFlexGridSizer(2, 2, 9, 25);
-    wxStaticText * thetitle = new wxStaticText(this, wxID_ANY, _T("User/Phone"));
-    wxStaticText * author   = new wxStaticText(this, wxID_ANY, _T("Password"));
+    wxStaticText * thetitle = new wxStaticText(panel, wxID_ANY, _T("User/Phone"));
+    wxStaticText * author   = new wxStaticText(panel, wxID_ANY, _T("Password"));
     //wxStaticText * review   = new wxStaticText(this, wxID_ANY, _T("Review"));
-    userInput = new wxTextCtrl(this, wxID_ANY);
-    passwordInput = new wxTextCtrl(this, wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PASSWORD);
+    userInput = new wxTextCtrl(panel, wxID_ANY);
+    passwordInput = new wxTextCtrl(panel, wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PASSWORD);
     //wxTextCtrl * tc3 = new wxTextCtrl(this, wxID_ANY, _T(""),
     //                                  wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
     //tc2->Enable(false);
@@ -92,20 +92,20 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxFrame( parent, id, "
     /**< hbox5 */
     auto * hbox5 = new wxBoxSizer(wxHORIZONTAL);
     //(*
-    okBtn = new wxButton(this, wxID_ANY, _T("OK"));
+    okBtn = new wxButton(panel, wxID_ANY, _T("OK"));
     hbox5->Add(okBtn, 0);
-    wxButton * btn2 = new wxButton(this, wxID_ANY, _T("Close"));
+    wxButton * btn2 = new wxButton(panel, wxID_ANY, _T("Close"));
     hbox5->Add(btn2, 0, wxLEFT | wxBOTTOM, 15);
     vbox->Add(hbox5, 0, wxALIGN_RIGHT | wxRIGHT, 10);
     //*)
-    this->SetSizer(vbox);
+    panel->SetSizer(vbox);
     this->Connect(okBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnOkBtnClicked));
     this->Connect(this->GetId(),wxEVT_THREAD, wxThreadEventHandler(LoginFrame::OnThreadEvent));
-    this->CreateStatusBar(2);
+    this->CreateStatusBar();
 }
 //#pragma clang diagnostic pop
 
-void LoginFrame::OnOkBtnClicked(wxMouseEvent &event) {
+void LoginFrame::OnOkBtnClicked(wxMouseEvent & WXUNUSED(event)) {
     this->SetStatusText("Requesting remote server...");
     LockInterface();
     // CommonApi::instance()::post_data(U("/v1/user/login"),)

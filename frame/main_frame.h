@@ -25,8 +25,8 @@ public:
     // ctor(s)
     MainFrame(const wxString& title, int w, int h);
     ~MainFrame() final {
-        delete fileMenu;
-        delete helpMenu;
+        //delete fileMenu;
+        //delete helpMenu;
         delete logFrame;
         // delete user_model;
     }

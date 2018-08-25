@@ -18,7 +18,7 @@ public:
         }
     }
      */
-    pplx::task<web::json::value> post_data(const std::string & uri,const web::json::value & data, const bool & return_result = false);
+    pplx::task<web::json::value> post_data(const std::string& uri, const web::json::value & data, const bool & return_result);
 private:
 
     // CommonApi();

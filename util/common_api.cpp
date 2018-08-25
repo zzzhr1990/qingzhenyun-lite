@@ -11,20 +11,21 @@ CommonApi &CommonApi::instance() {
     return c;
 }
 
-task<web::json::value> CommonApi::post_data(const std::string & uri,const web::json::value & data, const bool & return_result) {
+
+task<web::json::value> CommonApi::post_data(const std::string& uri,const web::json::value & data,const bool &return_result) {
     //return web::json::object();
     using namespace web::http;
     http_request request(methods::POST);
-    uri_builder login_uri(U(uri));
+    uri_builder login_uri(utility::conversions::to_string_t(uri));
     request.set_request_uri(login_uri.to_string());
     request.headers().add(header_names::accept, U("application/json"));
     request.headers().add(header_names::content_type, U("application/json"));
     request.set_body(data);
     auto resp = raw_client.request(request).then([](http_response response){
         return response.extract_json();
-    }).then([&return_result](web::json::value &v){
+    }).then([return_result](web::json::value v){
         if(!return_result){
-            return create_task([&v](){ return v;});
+            return create_task([v](){ return v;});
         }
 
         auto success = v[U("success")].as_bool();
