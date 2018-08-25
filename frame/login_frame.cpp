@@ -120,8 +120,8 @@ void LoginFrame::OnCloseBtnClicked(wxMouseEvent & WXUNUSED(event)) {
 }
 
 void LoginFrame::LockInterface() {
-    std::string x = this->userInput->GetValue().ToUTF8();
-	std::string password = this->passwordInput->GetValue().ToUTF8();
+    std::string x = this->userInput->GetValue().ToUTF8().data();
+	std::string password = this->passwordInput->GetValue().ToUTF8().data();
     passwordInput->Enable(false);
     okBtn->Enable(false);
     userInput->Enable(false);
