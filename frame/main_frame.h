@@ -17,6 +17,8 @@
 #include "./log_frame.h"
 #include "../model/user_model.h"
 #include "./login_frame.h"
+#include "wx/notebook.h"
+#include "wx/dataview.h"
 
 // Define a new frame type: this is going to be our main frame
 class MainFrame : public wxFrame

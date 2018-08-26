@@ -107,7 +107,7 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
     vbox->Add(hbox5, 0, wxALIGN_RIGHT | wxRIGHT, 10);
     //*)
     panel->SetSizer(vbox);
-	this->Connect(this->GetId(), wxEVT_CLOSE_WINDOW, wxCloseEventHandler(LoginFrame::OnClose));
+	//this->Connect(this->GetId(), wxEVT_CLOSE_WINDOW, wxCloseEventHandler(LoginFrame::OnClose));
     this->Connect(okBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnOkBtnClicked));
 	this->Connect(closeBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnCloseBtnClicked));
     this->Connect(this->GetId(),wxEVT_THREAD, wxThreadEventHandler(LoginFrame::OnThreadEvent));
@@ -180,6 +180,7 @@ void LoginFrame::SetStatusText(const wxString& text) {
 	hbox1->Layout();
 }
 
+/*
 void LoginFrame::OnClose(wxCloseEvent& event) {
 	UnlockInterface();
 	event.Veto();
@@ -187,3 +188,4 @@ void LoginFrame::OnClose(wxCloseEvent& event) {
 	this->Show(false);
 
 }
+*/

@@ -28,7 +28,7 @@ private:
 	void OnCloseBtnClicked(wxMouseEvent & WXUNUSED);
     void OnThreadEvent(wxThreadEvent& event);
 	void SetStatusText(const wxString & text);
-	void OnClose(wxCloseEvent & event);
+	// void OnClose(wxCloseEvent & event);
     void LockInterface();
     void UnlockInterface();
 
