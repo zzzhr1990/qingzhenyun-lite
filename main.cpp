@@ -41,6 +41,7 @@
 
 #include "./frame/main_frame.h"
 #include <cpprest/http_client.h>
+#include "./common_id.h"
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -89,6 +90,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
                 EVT_MENU(wxID_EXIT,  MainFrame::OnQuit)
                 EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
                 EVT_MENU(wxID_FILE1, MainFrame::ShowLogWindow)
+				EVT_MENU(ID_USER_LOGIN_MENU_ITEM, MainFrame::OnLoginMenuClick)
                 // EVT_WINDOW_CREATE(MainFrame::OnWindowCreate)
                 // EVT_MENU(8848, MainFrame::CloseLogWindow)
 wxEND_EVENT_TABLE()

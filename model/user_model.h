@@ -37,24 +37,27 @@ private:
 class UserModel {
 public:
     static UserModel& instance();
-    pplx::task<web::json::value> check_login(std::string &value, std::string &password);
-    void check_login(wxWindow& handler, std::string &value, std::string &password);
-    void start_user_check_loop(wxWindow* handler);
-    void on_user_login(web::json::value &user_json);
+    pplx::task<ResponseEntity> check_login(const std::string &value, const std::string &password);
+    void check_login(wxWindow& handler,const std::string &value,const std::string &password);
+    void start_user_check_loop(wxWindow* handler, const int& eventId);
+	bool IsUserLogin();
+    void on_user_login(const ResponseEntity &user_data);
+	void UpdateToken(utility::string_t token);
     // void add_event_frame(wxWindow* frame);
     void terminate();
-    void start_check_request(wxWindow* handler);
+    void start_check_request(wxWindow* handler, const int &event_id);
 private:
     UserModel():timer(){
 
     }
     ~UserModel();
-    CommonApi common_api = CommonApi::instance();
+    // CommonApi common_api = CommonApi::instance();
     // std::vector<wxWindow*> event_tables;
     // MyWorkerThread *thread = new MyWorkerThread(event_tables);
     // int timer_id;
     Timer timer;
-    std::string current_token = "";
+	utility::string_t current_token = U("");
+	web::json::value userInfo;
 };
 
 

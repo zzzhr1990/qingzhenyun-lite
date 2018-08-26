@@ -16,7 +16,7 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
 
     /**< hbox1 */
 
-    wxBoxSizer * hbox1 = new wxBoxSizer(wxHORIZONTAL);
+    hbox1 = new wxBoxSizer(wxHORIZONTAL);
     //(*
     
     //wxStaticText * st1 = new wxStaticText(panel, wxID_ANY, _T("CLass Name"));
@@ -110,6 +110,7 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
 	this->Connect(closeBtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxMouseEventHandler(LoginFrame::OnCloseBtnClicked));
     this->Connect(this->GetId(),wxEVT_THREAD, wxThreadEventHandler(LoginFrame::OnThreadEvent));
     // this->CreateStatusBar();
+	// infoText->SetLabelText(_T("Login failed, check your account."));
 }
 //#pragma clang diagnostic pop
 
@@ -154,19 +155,26 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
     auto success = event.GetInt() > 0;
     if(!success){
         UnlockInterface();
-		infoText->SetLabelText(_T("Login failed, check your account."));
-		// infoText->SetWindowStyle(wxALIGN_CENTER_HORIZONTAL);
-		// infoText->Refresh();
+		auto payload = event.GetPayload<ResponseEntity>();
+		auto p = wxString::Format(_T("Login failed(%s), check your account."), payload.message);
+		SetStatusText(p);
+		
     }else{
         UnlockInterface();
         passwordInput->SetValue(wxEmptyString);
         userInput->SetValue(wxEmptyString);
         // this->SetStatusText("Login success.");
-        auto payload = event.GetPayload<web::json::value>();
+        auto payload = event.GetPayload<ResponseEntity>();
         UserModel::instance().on_user_login(payload);
-		infoText->SetLabelText(_T("Login"));
+		SetStatusText(_T("Login"));
+		// infoText->Layout();
         this->Close();
     }
+}
+
+void LoginFrame::SetStatusText(const wxString& text) {
+	infoText->SetLabelText((text));
+	hbox1->Layout();
 }
 
 void LoginFrame::OnClose(wxCloseEvent& event) {

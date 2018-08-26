@@ -35,6 +35,7 @@ public:
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void ShowLogWindow(wxCommandEvent& event);
+	void OnLoginMenuClick(wxCommandEvent & event);
     void OnThreadEvent(wxThreadEvent& event);
     void OnClose(wxCloseEvent& event);
     void OnWindowCreate(wxIdleEvent& event);

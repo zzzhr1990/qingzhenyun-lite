@@ -15,12 +15,14 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     // create a menu bar
     fileMenu = new wxMenu();
 
-
+	auto userMenu = new wxMenu();
+	//auto userMenuLoginId = wxID_ANY;
+	userMenu->Append(ID_USER_LOGIN_MENU_ITEM, _T("&Login\tAlt-U"), _T("Change user to login"));
 
     // the "About" item should be in the help menu
     helpMenu = new wxMenu();
 
-    helpMenu->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
+    helpMenu->Append(wxID_ABOUT, "&About\tF1", _T("Show about dialog"));
 
     fileMenu->Append(wxID_EXIT, "&Exit\tAlt-X", "Quit this program");
 
@@ -30,7 +32,9 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     // now append the freshly created menu to the menu bar...
     auto *menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
+	menuBar->Append(userMenu, "&User");
     menuBar->Append(helpMenu, "&Help");
+	
 
     // ... and attach this menu bar to the frame
     SetMenuBar(menuBar);
@@ -40,16 +44,16 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     SetStatusText("Checking User Login...");
     auto id = this->GetId();
     this->Connect(id, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
-    auto timer_id = wxID_ANY;
+	// this->Connect(id, wxEVT_MENU, wxCloseEventHandler(MainFrame::OnClose));
     //this->user_model = UserModel;
     // user_model->add_event_frame(this);
 
-    this->Connect(timer_id, wxEVT_THREAD, wxThreadEventHandler(MainFrame::OnThreadEvent));
+    this->Connect(wxEVT_THREAD, wxThreadEventHandler(MainFrame::OnThreadEvent));
     //EVT WINDOW CREATE(ShapedFrame::OnWindowCreate)
     this->Connect(wxEVT_IDLE, wxIdleEventHandler(MainFrame::OnWindowCreate));
     // this->Connect(wxEVT_TIMER, wxTimerEventHandler(MainFrame::OnUserCheckingTimerEvent));
     // wxCloseEventHandler(LogFrame::OnClose)
-    UserModel::instance().start_user_check_loop(this);
+    UserModel::instance().start_user_check_loop(this, ID_USER_CHECK_TIMER);
 
     std::cout << "Create window id " << id << std::endl;
 
@@ -126,5 +130,10 @@ void MainFrame::ShowLogWindow(wxCommandEvent& WXUNUSED(event)){
     logFrame->SetFocus();  // does nothing
     logFrame->Show(true); // this by itself doesn't work
     logFrame->RequestUserAttention();
+}
+
+
+void MainFrame::OnLoginMenuClick(wxCommandEvent &WXUNUSED(event)) {
+	showLoginFrame();
 }
 

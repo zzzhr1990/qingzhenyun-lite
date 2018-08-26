@@ -6,7 +6,8 @@
 #define FUCK_COMMON_API_H
 
 #include <cpprest/http_client.h>
-
+#include "../entity/response_entity.h"
+#include "../model/user_model.h"
 class CommonApi {
 public:
     static CommonApi& instance();
@@ -18,7 +19,7 @@ public:
         }
     }
      */
-    pplx::task<web::json::value> post_data(const std::string& uri, const web::json::value & data, const bool & return_result);
+    pplx::task<ResponseEntity> post_data(const std::string& uri, const web::json::value & data);
 private:
 
     // CommonApi();

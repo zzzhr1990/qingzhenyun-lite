@@ -27,6 +27,7 @@ private:
     void OnOkBtnClicked(wxMouseEvent &event);
 	void OnCloseBtnClicked(wxMouseEvent & WXUNUSED);
     void OnThreadEvent(wxThreadEvent& event);
+	void SetStatusText(const wxString & text);
 	void OnClose(wxCloseEvent & event);
     void LockInterface();
     void UnlockInterface();
@@ -35,6 +36,7 @@ private:
     wxButton * okBtn = nullptr;
     wxTextCtrl * userInput = nullptr;
 	wxStaticText * infoText = nullptr;
+	wxBoxSizer * hbox1 = nullptr;
 };
 
 
