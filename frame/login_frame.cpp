@@ -96,11 +96,13 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
     //*)
 
     /**< hbox5 */
+
     auto * hbox5 = new wxBoxSizer(wxHORIZONTAL);
     //(*
+	
     okBtn = new wxButton(panel, wxID_ANY, _T("OK"));
     hbox5->Add(okBtn, 0);
-    wxButton * closeBtn = new wxButton(panel, wxID_ANY, _T("Close"));
+	wxButton * closeBtn = new wxButton(panel, wxID_ANY, _T("Close"));
     hbox5->Add(closeBtn, 0, wxLEFT | wxBOTTOM, 15);
     vbox->Add(hbox5, 0, wxALIGN_RIGHT | wxRIGHT, 10);
     //*)
@@ -149,6 +151,7 @@ void LoginFrame::UnlockInterface() {
     passwordInput->Enable(true);
     okBtn->Enable(true);
     userInput->Enable(true);
+	okBtn->SetFocus();
 }
 
 void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
