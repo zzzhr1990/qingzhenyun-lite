@@ -43,6 +43,7 @@ public:
 	bool IsUserLogin();
     void on_user_login(const ResponseEntity &user_data);
 	void UpdateToken(utility::string_t token);
+	utility::string_t GetToken();
     // void add_event_frame(wxWindow* frame);
     void terminate();
     void start_check_request(wxWindow* handler, const int &event_id);
@@ -51,10 +52,6 @@ private:
 
     }
     ~UserModel();
-    // CommonApi common_api = CommonApi::instance();
-    // std::vector<wxWindow*> event_tables;
-    // MyWorkerThread *thread = new MyWorkerThread(event_tables);
-    // int timer_id;
     Timer timer;
 	utility::string_t current_token = U("");
 	web::json::value userInfo;

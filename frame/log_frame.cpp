@@ -8,18 +8,10 @@ LogFrame::LogFrame( wxWindow* parent, wxWindowID id, const wxString& title, cons
 {
     this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
-    //wxStaticBoxSizer* sbSizer2;
-    //sbSizer2 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Log Output") ), wxHORIZONTAL );
-
-    //error wxStaticBox staticBox( this, wxID_ANY, wxT("Log Output"));
-    //error wxStaticBoxSizer mainSizer(&staticBox,wxVERTICAL);
-
     wxStaticBoxSizer* mainSizer = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Log Output") ), wxVERTICAL );
 
     log_text_ctrl = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxSUNKEN_BORDER );
     log_text_ctrl->SetMinSize(wxSize(600, 200));
-    // sbSizer2->Add( log_text_ctrl, 0, wxALL|wxEXPAND|wxGROW);
-    // error mainSizer.Add( log_text_ctrl, 0, wxALL|wxEXPAND|wxGROW );
 
     wxLogger = wxLog::SetActiveTarget(new wxLogTextCtrl(log_text_ctrl));
 

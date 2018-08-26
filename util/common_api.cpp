@@ -39,9 +39,17 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
     request.set_request_uri(login_uri.to_string());
     request.headers().add(header_names::accept, U("application/json"));
     request.headers().add(header_names::content_type, U("application/json"));
-    request.set_body(data);
+	auto token = UserModel::instance().GetToken();
+	if (!token.empty()) {
+		web::json::value pp = data;
+		pp[U("token")] = web::json::value::string(token);
+		request.set_body(pp);
+	}else{
+		request.set_body(data);
+	}
+    
     auto resp = raw_client.request(request).then([](pplx::task<http_response> response_task){
-		// if there is any exc
+		// if there is any task, cancel it.
 		try
 		{
 			auto json_response = response_task.get();
@@ -52,9 +60,6 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
 				UserModel::instance().UpdateToken(token);
 			}
 			auto success = v[U("success")].as_bool();
-			
-			// auto res = v[U("result")];
-			// auto token = v.get(U("token"));
 			ResponseEntity response;
 			response.success = success;
 			if (v.has_field(U("message"))) {
@@ -69,7 +74,6 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
 		}
 		catch (const std::exception& e)
 		{
-			std::cout << "exception " << e.what() << std::endl;
 			ResponseEntity response;
 			response.success = false;
 			response.result = web::json::value();
