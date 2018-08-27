@@ -35,9 +35,7 @@ pplx::task<ResponseEntity> UserModel::check_login(const std::string &value, cons
 	web::json::value json_v;
 	json_v[U("value")] = web::json::value::string(utility::conversions::to_string_t(value));
 	json_v[U("password")] = web::json::value::string(utility::conversions::to_string_t(password));
-	// new thread ?
-	// std::cout << value << std::endl;
-	return CommonApi::instance().post_data("/v1/user/login", json_v);
+	return CommonApi::instance().post_data(U("/v1/user/login"), json_v);
 
 }
 
@@ -69,11 +67,18 @@ void UserModel::start_user_check_loop(wxWindow* handler, const int& eventId) {
 	 */
 	 // int cc = 0;
 	auto x = [&](wxWindow* handler) {
+		long current =  std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 		if (!this->current_token.empty()) {
-			this->start_check_request(handler, eventId);
+			long time_diff = current - last_refresh_time;
+			if(time_diff > 10){
+				last_refresh_time = current;
+				this->start_check_request(handler, eventId);
+			}else{
+				std::cout << time_diff << std::endl;
+			}
 		}
 	};
-	timer.StartTimer(1000, std::bind(x, handler));
+	timer.StartTimer(1000 * 30, std::bind(x, handler)); // refresh user data every 30 sec.
 
 }
 
@@ -85,17 +90,30 @@ bool UserModel::IsUserLogin() {
 
 
 void UserModel::start_check_request(wxWindow* handler, const int &event_id) {
-	wxThreadEvent event(wxEVT_THREAD);
-	event.SetInt(event_id);
-	// using namespace chrono;
-	auto ts = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-	event.SetTimestamp(ts);
-	// event.Clone();
-	/*
-	for(wxWindow* m_frame : event_tables){
-		wxQueueEvent( m_frame, event.Clone());
-	}*/
-	wxQueueEvent(handler, event.Clone());
+	GetUserInfo().then([&,handler](ResponseEntity v){
+		last_refresh_time = 0;
+		if(v.success){
+			wxThreadEvent event(wxEVT_THREAD);
+			event.SetId(event_id);
+			// using namespace chrono;
+			auto ts = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+			event.SetTimestamp(ts);
+			// event.Clone();
+			/*
+            for(wxWindow* m_frame : event_tables){
+                wxQueueEvent( m_frame, event.Clone());
+            }*/
+			wxQueueEvent(handler, event.Clone());
+		}else{
+			// throw false
+			if(v.status > 400 && v.status < 500){
+				std::cout<<"Failed refresh, need re-login"<<std::endl;
+				std::cout<< v.message <<std::endl;
+			}
+
+		}
+	});
+
 	// wxLogMessage("Start checking User ");
 }
 
@@ -104,30 +122,39 @@ UserModel &UserModel::instance() {
 	return c;
 }
 
-void UserModel::check_login(wxWindow& handler, const std::string &value, const std::string &password) {
+void UserModel::check_login(wxWindow* handler, const std::string &value, const std::string &password) {
 	auto task = this->check_login(value, password);
-	task.then([&](ResponseEntity v) {
-		auto success = v.success;
-		wxThreadEvent event(wxEVT_THREAD, handler.GetId());
-		event.SetInt(success ? 1 : 0);
+	task.then([&,handler](ResponseEntity v) {
+		// auto success = v.success;
+		SendCommonThreadEvent(handler, USER_LOGIN_RESPONSE, v);
 		// event.SetB
-		event.SetPayload(v);
-		wxQueueEvent(&handler, event.Clone());
+
 	});
 }
 
+void UserModel::SendCommonThreadEvent(wxWindow* handler,const int& type_id, const ResponseEntity& v){
+	wxThreadEvent event(wxEVT_THREAD, handler->GetId());
+	event.SetInt(type_id);
+	event.SetPayload(v);
+	wxQueueEvent(handler, event.Clone());
+}
+
 void UserModel::on_user_login(const ResponseEntity &user_data) {
-	// std::cout << "Token:" << user_json[U("token")] << std::endl;
-	// this->current_token = user_json[U("token")].as_string();
 	this->userInfo = user_data.result;
 };
 
-void UserModel::UpdateToken(utility::string_t token) {
+void UserModel::UpdateToken(const utility::string_t& token) {
 	this->current_token = token;
 };
 
-utility::string_t UserModel::GetToken() {
+utility::string_t & UserModel::GetToken() {
 	return this->current_token;
+}
+
+pplx::task<ResponseEntity> UserModel::GetUserInfo() {
+	using namespace web;
+	return CommonApi::instance().post_data(U("/v1/user/info"), web::json::value::object(false));
+
 };
 
 UserModel::~UserModel() = default;

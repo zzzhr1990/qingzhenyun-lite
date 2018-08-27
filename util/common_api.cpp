@@ -3,6 +3,7 @@
 //
 
 #include "common_api.h"
+#include "../model/user_model.h"
 
 using namespace pplx;
 
@@ -11,44 +12,41 @@ CommonApi &CommonApi::instance() {
     return c;
 }
 
+/*
+pplx::cancellation_token_source cts;
+pplx::task<ResponseEntity> task = pplx::task<ResponseEntity>([cts,task]()
+{
 
-task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json::value & data) {
-	
-	/*
-	pplx::cancellation_token_source cts;
-	pplx::task<ResponseEntity> task = pplx::task<ResponseEntity>([cts,task]()
-	{
+while (!cts.get_token().is_canceled())
+{
+std::cout << "task is running" << std::endl;
+pplx::wait(90);
+}
 
-	while (!cts.get_token().is_canceled())
-	{
-	std::cout << "task is running" << std::endl;
-	pplx::wait(90);
-	}
+std::cout << "task cancelled" << std::endl;
 
-	std::cout << "task cancelled" << std::endl;
+task.get()
+});
+*/
 
-	task.get()
-	});
-	*/
-	
 
-    //return web::json::object();
+//return web::json::object();
+
+task<ResponseEntity> CommonApi::post_data(const utility::string_t& uri,const web::json::value & data) {
     using namespace web::http;
     http_request request(methods::POST);
-    uri_builder login_uri(utility::conversions::to_string_t(uri));
+    uri_builder login_uri(uri);
     request.set_request_uri(login_uri.to_string());
-    request.headers().add(header_names::accept, U("application/json"));
-    request.headers().add(header_names::content_type, U("application/json"));
-	auto token = UserModel::instance().GetToken();
+    auto & headers = request.headers();
+    headers.add(header_names::accept, U("application/json"));
+    headers.add(header_names::content_type, U("application/json"));
+    auto &token = UserModel::instance().GetToken();
 	if (!token.empty()) {
-		web::json::value pp = data;
-		pp[U("token")] = web::json::value::string(token);
-		request.set_body(pp);
-	}else{
-		request.set_body(data);
-	}
-    
-    auto resp = raw_client.request(request).then([](pplx::task<http_response> response_task){
+        headers.add(U("Token"),token);
+    }
+	request.set_body(data);
+
+	task<ResponseEntity> resp = raw_client.request(request).then([](pplx::task<http_response> response_task){
 		// if there is any task, cancel it.
 		try
 		{
@@ -56,8 +54,8 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
 			auto json = json_response.extract_json();
 			auto v = json.get();
 			if (v.has_field(U("token"))) {
-				auto token = v.at(U("token")).as_string();
-				UserModel::instance().UpdateToken(token);
+                utility::string_t new_token = v.at(U("token")).as_string();
+				UserModel::instance().UpdateToken(new_token);
 			}
 			auto success = v[U("success")].as_bool();
 			ResponseEntity response;
@@ -68,6 +66,9 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
 			if (v.has_field(U("result"))) {
 				response.result = v.at(U("result"));
 			}
+            if (v.has_field(U("status"))) {
+                response.status = v.at(U("status")).as_integer();
+            }
 			return create_task([response]() {
 				return response;
 			});
@@ -76,6 +77,7 @@ task<ResponseEntity> CommonApi::post_data(const std::string& uri,const web::json
 		{
 			ResponseEntity response;
 			response.success = false;
+			response.status = -1;
 			response.result = web::json::value();
 			response.message = utility::conversions::to_string_t(e.what());
 			return create_task([response]() {

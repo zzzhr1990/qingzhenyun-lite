@@ -7,7 +7,6 @@
 
 #include <cpprest/http_client.h>
 #include "../entity/response_entity.h"
-#include "../model/user_model.h"
 class CommonApi {
 public:
     static CommonApi& instance();
@@ -19,15 +18,22 @@ public:
         }
     }
      */
-    pplx::task<ResponseEntity> post_data(const std::string& uri, const web::json::value & data);
+    pplx::task<ResponseEntity> post_data(const utility::string_t& uri, const web::json::value & data);
 private:
 
     // CommonApi();
-    web::http::client::http_client_config _cfg;
+    // web::http::client::http_client_config _cfg;
     CommonApi():
+    /*
+     *
     raw_client(_XPLATSTR("https://api.6pan.cn"),_cfg)
     {
         _cfg.set_timeout(std::chrono::seconds(10));
+    }
+     */
+    raw_client(_XPLATSTR("https://api.6pan.cn"))
+    {
+        //_cfg.set_timeout(std::chrono::seconds(10));
     }
 
     web::http::client::http_client raw_client;

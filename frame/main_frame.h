@@ -12,13 +12,14 @@
 
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
+#include "wx/notebook.h"
+#include "wx/dataview.h"
 #endif
 
 #include "./log_frame.h"
 #include "../model/user_model.h"
 #include "./login_frame.h"
-#include "wx/notebook.h"
-#include "wx/dataview.h"
+
 
 // Define a new frame type: this is going to be our main frame
 class MainFrame : public wxFrame
@@ -26,12 +27,7 @@ class MainFrame : public wxFrame
 public:
     // ctor(s)
     MainFrame(const wxString& title, int w, int h);
-    ~MainFrame() final {
-        //delete fileMenu;
-        //delete helpMenu;
-        // delete logFrame;
-        // delete user_model;
-    }
+    ~MainFrame() final = default;
 
     // event handlers (these functions should _not_ be virtual)
     void OnQuit(wxCommandEvent& event);

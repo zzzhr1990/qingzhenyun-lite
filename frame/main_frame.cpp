@@ -4,6 +4,7 @@
 
 #include "main_frame.h"
 #include "../common_id.h"
+#include "./notebook/note_index.h"
 
 MainFrame::MainFrame(const wxString& title, int w, int h)
         : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition,  wxSize(w, h))
@@ -39,34 +40,9 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     // ... and attach this menu bar to the frame
     SetMenuBar(menuBar);
 	// File UI
-	const wxSizerFlags border = wxSizerFlags().DoubleBorder();
-	auto m_notebook = new wxNotebook( this, wxID_ANY );
-	auto firstPanel = new wxPanel(m_notebook, wxID_ANY);
-	wxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-	button_sizer->Add(new wxButton(firstPanel, ID_ADD_MOZART, "Add Mozart"), border);
-	button_sizer->Add(new wxButton(firstPanel, ID_DELETE_SEL, "Delete selected"), border);
-	button_sizer->Add(new wxButton(firstPanel, ID_DELETE_YEAR, "Delete \"Year\" column"), border);
-	button_sizer->Add(new wxButton(firstPanel, ID_SELECT_NINTH, "Select ninth symphony"), border);
-	button_sizer->Add(new wxButton(firstPanel, ID_COLLAPSE, "Collapse"), border);
-	button_sizer->Add(new wxButton(firstPanel, ID_EXPAND, "Expand"), border);
-	wxBoxSizer *sizerCurrent = new wxBoxSizer(wxHORIZONTAL);
-	sizerCurrent->Add(new wxButton(firstPanel, ID_SHOW_CURRENT,
-		"&Show current"), border);
-	sizerCurrent->Add(new wxButton(firstPanel, ID_SET_NINTH_CURRENT,
-		"Make &ninth symphony current"), border);
-	wxSizer *firstPanelSz = new wxBoxSizer(wxVERTICAL);
-	auto m_ctrl = new wxDataViewCtrl(firstPanel, ID_ATTR_CTRL, wxDefaultPosition,
-		wxDefaultSize);
-	m_ctrl->SetMinSize(wxSize(-1, 200));
-	firstPanelSz->Add(m_ctrl, 1, wxGROW | wxALL, 5);
-	firstPanelSz->Add(
-		new wxStaticText(firstPanel, wxID_ANY, "Most of the cells above are editable!"),
-		0, wxGROW | wxALL, 5);
-	firstPanelSz->Add(button_sizer);
-	firstPanelSz->Add(sizerCurrent);
-	firstPanel->SetSizerAndFit(firstPanelSz);
-	m_notebook->AddPage(firstPanel, "My remote files");
+	// const wxSizerFlags border = wxSizerFlags().DoubleBorder();
+	auto m_notebook = new NoteIndex( this,wxID_ANY );
+    wxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 	mainSizer->Add(m_notebook, 1, wxGROW);
 	SetSizerAndFit(mainSizer);
     // create a status bar just for fun (by default with 1 pane only)
@@ -85,6 +61,7 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     // wxCloseEventHandler(LogFrame::OnClose)
     UserModel::instance().start_user_check_loop(this, ID_USER_CHECK_TIMER);
 
+    this->SetSize(w,h);
 }
 
 

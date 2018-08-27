@@ -14,7 +14,7 @@ struct ResponseEntity
 
 	bool success;
 	web::json::value  result;
-	int code;
+	int status;
 	utility::string_t message;
 };
 

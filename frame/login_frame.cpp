@@ -134,7 +134,7 @@ void LoginFrame::LockInterface() {
     passwordInput->Enable(false);
     okBtn->Enable(false);
     userInput->Enable(false);
-    UserModel::instance().check_login(*this,x, password);
+    UserModel::instance().check_login(this,x, password);
     /*
     task.then([&](web::json::value v){
         auto success = v[U("success")].as_bool();
@@ -155,23 +155,26 @@ void LoginFrame::UnlockInterface() {
 }
 
 void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
-    auto success = event.GetInt() > 0;
-    if(!success){
-        UnlockInterface();
-		auto payload = event.GetPayload<ResponseEntity>();
-		auto p = wxString::Format(_T("Login failed(%s), check your account."), payload.message);
-		SetStatusText(p);
-		
-    }else{
-        UnlockInterface();
-        passwordInput->SetValue(wxEmptyString);
-        userInput->SetValue(wxEmptyString);
-        // this->SetStatusText("Login success.");
+    if(event.GetInt() == USER_LOGIN_RESPONSE){
         auto payload = event.GetPayload<ResponseEntity>();
-        UserModel::instance().on_user_login(payload);
-		SetStatusText(_T("Login"));
-		// infoText->Layout();
-        this->Close();
+        //auto success = ;
+        if(!payload.success){
+            UnlockInterface();
+            // auto payload = event.GetPayload<ResponseEntity>();
+            auto p = wxString::Format(_T("Login failed(%s), check your account."), payload.message);
+            SetStatusText(p);
+
+        }else{
+            UnlockInterface();
+            passwordInput->SetValue(wxEmptyString);
+            userInput->SetValue(wxEmptyString);
+            // this->SetStatusText("Login success.");
+
+            UserModel::instance().on_user_login(payload);
+            SetStatusText(_T("Login"));
+            // infoText->Layout();
+            this->Close();
+        }
     }
 }
 
