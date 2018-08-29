@@ -17,15 +17,11 @@
 class LoginFrame : public wxDialog {
 public:
     LoginFrame(wxWindow* parent, wxWindowID id);
-    ~LoginFrame(){
-        // delete passwordInput;
-        // delete okBtn;
-        // delete userInput;
-    }
+    ~LoginFrame()= default;
 
 private:
     void OnOkBtnClicked(wxMouseEvent &event);
-	void OnCloseBtnClicked(wxMouseEvent & WXUNUSED);
+	void OnCloseBtnClicked(wxMouseEvent & event);
     void OnThreadEvent(wxThreadEvent& event);
 	void SetStatusText(const wxString & text);
 	// void OnClose(wxCloseEvent & event);
@@ -37,6 +33,8 @@ private:
     wxTextCtrl * userInput = nullptr;
 	wxStaticText * infoText = nullptr;
 	wxBoxSizer * hbox1 = nullptr;
+    wxWindow * main_frame = nullptr;
+
 };
 
 

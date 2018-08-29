@@ -46,7 +46,11 @@ task<ResponseEntity> CommonApi::post_data(const utility::string_t& uri,const web
     }
 	request.set_body(data);
 
-	task<ResponseEntity> resp = raw_client.request(request).then([](pplx::task<http_response> response_task){
+	//std::string abc = "abc";
+	// std::string & bbc = abc;
+
+
+	const task<ResponseEntity> resp = raw_client.request(request).then([](pplx::task<http_response> response_task){
 		// if there is any task, cancel it.
 		try
 		{
@@ -63,6 +67,9 @@ task<ResponseEntity> CommonApi::post_data(const utility::string_t& uri,const web
 			if (v.has_field(U("message"))) {
 				response.message = v.at(U("message")).as_string();
 			}
+            if (v.has_field(U("code"))) {
+                response.code = v.at(U("code")).as_string();
+            }
 			if (v.has_field(U("result"))) {
 				response.result = v.at(U("result"));
 			}

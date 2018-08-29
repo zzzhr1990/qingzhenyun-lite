@@ -17,7 +17,7 @@
 class LogFrame : public  wxFrame{
 public:
     LogFrame( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size );
-    ~LogFrame();
+    ~LogFrame()= default;
     void OnClose(wxCloseEvent& event);
 protected:
     wxTextCtrl* log_text_ctrl = nullptr;

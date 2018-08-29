@@ -12,8 +12,15 @@ struct ResponseEntity
 	};
 	*/
 
+	/*
+	 * utility::stringstream_t stream;
+        payload.result.serialize(stream);
+
+        std::cout << stream.str() << std::endl;
+	 */
 	bool success;
 	web::json::value  result;
+	utility::string_t  code;
 	int status;
 	utility::string_t message;
 };

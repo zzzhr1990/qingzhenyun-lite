@@ -42,6 +42,8 @@
 #include "./frame/main_frame.h"
 #include <cpprest/http_client.h>
 #include "./common_id.h"
+#include "frame/main_frame.h"
+
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -57,7 +59,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit();
+    bool OnInit() override;
 };
 
 
@@ -94,6 +96,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
                 // EVT_WINDOW_CREATE(MainFrame::OnWindowCreate)
                 // EVT_MENU(8848, MainFrame::CloseLogWindow)
 wxEND_EVENT_TABLE()
+
 
 // Create a new application object: this macro will allow wxWidgets to create
 // the application object during program execution (it's better than using a

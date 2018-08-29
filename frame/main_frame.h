@@ -38,6 +38,7 @@ public:
     void OnClose(wxCloseEvent& event);
     void OnWindowCreate(wxIdleEvent& event);
 	void showLoginFrame();
+    void OnUserLogin();
     // void OnUserCheckingTimerEvent(wxTimerEvent& event);
     // void CloseLogWindow(wxCloseEvent& event);
 
@@ -50,6 +51,8 @@ private:
     LogFrame * logFrame = nullptr;
 
 	LoginFrame *login_frame = nullptr;
+
+    wxNotebook * main_notebook = nullptr;
 
     // UserModel * user_model = nullptr;
 

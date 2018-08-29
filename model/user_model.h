@@ -41,7 +41,6 @@ public:
     pplx::task<ResponseEntity> check_login(const std::string &value, const std::string &password);
     void check_login(wxWindow* handler,const std::string &value,const std::string &password);
     pplx::task<ResponseEntity> GetUserInfo();
-    void SendCommonThreadEvent(wxWindow* handler,const int& type_id, const ResponseEntity& v);
     void start_user_check_loop(wxWindow* handler, const int& eventId);
 	bool IsUserLogin();
     void on_user_login(const ResponseEntity &user_data);

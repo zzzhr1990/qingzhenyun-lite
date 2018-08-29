@@ -5,6 +5,7 @@
 #include "login_frame.h"
 #include "../util/common_api.h"
 #include "../model/user_model.h"
+#include "./main_frame.h"
 
 // #pragma clang diagnostic push
 // #pragma ide diagnostic ignored "bugprone-suspicious-enum-usage"
@@ -18,6 +19,7 @@ LoginFrame::LoginFrame(wxWindow* parent, wxWindowID id) : wxDialog( parent, id, 
 
     hbox1 = new wxBoxSizer(wxHORIZONTAL);
     //(*
+    main_frame = parent;
     
     //wxStaticText * st1 = new wxStaticText(panel, wxID_ANY, _T("CLass Name"));
     //hbox1->Add(st1, 0, wxRIGHT, 8);
@@ -174,6 +176,7 @@ void LoginFrame::OnThreadEvent(wxThreadEvent &event) {
             SetStatusText(_T("Login"));
             // infoText->Layout();
             this->Close();
+            ((MainFrame*)main_frame)->OnUserLogin();
         }
     }
 }

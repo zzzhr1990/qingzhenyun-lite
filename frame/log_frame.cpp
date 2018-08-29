@@ -29,9 +29,3 @@ void LogFrame::OnClose(wxCloseEvent& event){
     event.Veto();
     this->Show(false);
 }
-
-LogFrame::~LogFrame()
-{
-    delete log_text_ctrl;
-    delete wxLog::SetActiveTarget(wxLogger);
-}

@@ -41,13 +41,13 @@ MainFrame::MainFrame(const wxString& title, int w, int h)
     SetMenuBar(menuBar);
 	// File UI
 	// const wxSizerFlags border = wxSizerFlags().DoubleBorder();
-	auto m_notebook = new NoteIndex( this,wxID_ANY );
+    main_notebook = new NoteIndex( this,wxID_ANY );
     wxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
-	mainSizer->Add(m_notebook, 1, wxGROW);
+	mainSizer->Add(main_notebook, 1, wxGROW);
 	SetSizerAndFit(mainSizer);
     // create a status bar just for fun (by default with 1 pane only)
     CreateStatusBar(2);
-    SetStatusText("Checking User Login...");
+    SetStatusText(_T("Waiting..."));
     auto id = this->GetId();
     this->Connect(id, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainFrame::OnClose));
 	// this->Connect(id, wxEVT_MENU, wxCloseEventHandler(MainFrame::OnClose));
@@ -78,6 +78,9 @@ void MainFrame::OnWindowCreate(wxIdleEvent& WXUNUSED(event)){
     this->Disconnect(wxEVT_IDLE, wxIdleEventHandler(MainFrame::OnWindowCreate));
 	if (!UserModel::instance().IsUserLogin()) {
 		showLoginFrame();
+	}else{
+	    //refresh
+	    OnUserLogin();
 	}
 }
 
@@ -98,8 +101,38 @@ void MainFrame::OnThreadEvent(wxThreadEvent& event)
 {
     // true is to force the frame to close
     // Close(true);
-    long d = event.GetTimestamp();
-    SetStatusText(wxString::Format("Checking User Login...%ld", d));
+    int eventType = event.GetInt();
+    if(eventType == USER_REFRESH_RESPONSE){
+        long d = event.GetTimestamp();
+        SetStatusText(wxString::Format(_T("User info update at...%ld"), d));
+    }else{
+        SetStatusText(wxString::Format(_T("Unknown event type...%d"), eventType));
+    }
+    /*
+    switch (eventType){
+        case USER_REFRESH_RESPONSE:
+            long d = event.GetTimestamp();
+            SetStatusText(wxString::Format(_T("User info update at...%ld"), d));
+            break;
+        default:
+            SetStatusText(wxString::Format(_T("Unknown event type...%d"), eventType));
+            break;
+    }
+
+
+    switch (eventType){
+        case USER_REFRESH_RESPONSE:
+            // auto ts = event.GetTimestamp();
+            std::cout<< "Refresh User Remote file" << std::endl;
+            std::cout<< "Refresh User Remote file" << std::endl;
+            std::cout<< "Refresh User Remote file" << std::endl;
+            break;
+        default:
+            SetStatusText(wxString::Format(_T("Unknown event type...%d"), eventType));
+            break;
+
+    }
+     */
 
 }
 
@@ -110,19 +143,24 @@ void MainFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
     Close(true);
 }
 
+void MainFrame::OnUserLogin() {
+    ((NoteIndex*)this->main_notebook)->RefreshUserCurrentData();
+    SetStatusText(_T("User Login"));
+}
+
 void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox(wxString::Format
                          (
-                                 "Welcome to %s!\n"
-                                 "\n"
-                                 "Access https://www.qingzhenyun.com\n"
-                                 "for more information.\n\n"
-                                 "running under %s.",
-                                 "Halal Cloud Disk",
+                                 _T("Welcome to %s!\n")
+                                 _T("\n")
+                                 _T("Access https://www.qingzhenyun.com\n")
+                                 _T("for more information.\n\n")
+                                 _T("running under %s."),
+                                 _T("Halal Cloud Disk"),
                                  wxGetOsDescription()
                          ),
-                 "Halal Cloud Disk",
+                 _T("Halal Cloud Disk"),
                  wxOK | wxICON_INFORMATION,
                  this);
 }

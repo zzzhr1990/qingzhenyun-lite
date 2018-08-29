@@ -93,8 +93,10 @@ void UserModel::start_check_request(wxWindow* handler, const int &event_id) {
 	GetUserInfo().then([&,handler](ResponseEntity v){
 		last_refresh_time = 0;
 		if(v.success){
+
 			wxThreadEvent event(wxEVT_THREAD);
 			event.SetId(event_id);
+			event.SetInt(USER_REFRESH_RESPONSE);
 			// using namespace chrono;
 			auto ts = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 			event.SetTimestamp(ts);
@@ -104,6 +106,7 @@ void UserModel::start_check_request(wxWindow* handler, const int &event_id) {
                 wxQueueEvent( m_frame, event.Clone());
             }*/
 			wxQueueEvent(handler, event.Clone());
+
 		}else{
 			// throw false
 			if(v.status > 400 && v.status < 500){
@@ -132,12 +135,7 @@ void UserModel::check_login(wxWindow* handler, const std::string &value, const s
 	});
 }
 
-void UserModel::SendCommonThreadEvent(wxWindow* handler,const int& type_id, const ResponseEntity& v){
-	wxThreadEvent event(wxEVT_THREAD, handler->GetId());
-	event.SetInt(type_id);
-	event.SetPayload(v);
-	wxQueueEvent(handler, event.Clone());
-}
+
 
 void UserModel::on_user_login(const ResponseEntity &user_data) {
 	this->userInfo = user_data.result;

@@ -12,6 +12,7 @@
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
 #include "wx/notebook.h"
+#include "wx/dataview.h"
 
 #endif
 
@@ -20,9 +21,27 @@
 class NoteIndex : public wxNotebook {
 public:
     NoteIndex(MainFrame * mainFrame, wxWindowID id);
-
+    void RefreshUserCurrentData();
 private:
-    MainFrame * main_frame;
+    MainFrame * main_frame = nullptr;
+    void OnSizeChanged(wxSizeEvent& event);
+    wxDataViewListCtrl* userRemoteFilePage;
+    void UpdateUserRemoteFiles();
+    // bool CheckUserOnline(MainFrame * mainFrame);
+    void OnUserRemoteFileContextMenu(wxDataViewEvent &event);
+    void OnThreadEvent(wxThreadEvent& event);
+    void OnUserRemoteFileActivated(wxDataViewEvent &event);
+    void OnPageInputDClick(wxMouseEvent &event);
+    void OnPageInputKillFocus(wxFocusEvent &event);
+    void ResetCurrentPathDisplay();
+    void ParentBtnClicked(wxCommandEvent & event);
+    void PrevBtnClicked(wxCommandEvent & event);
+    void NextBtnClicked(wxCommandEvent & event);
+    wxTextCtrl * currentPageInput= nullptr;
+    wxButton * prevBtn = nullptr;
+    wxButton * nextBtn = nullptr;
+    wxTextCtrl * pathInput = nullptr;
+    wxButton * parentBtn = nullptr;
 };
 
 
