@@ -21,7 +21,7 @@ link_directories(
         /usr/local/opt/openssl/lib
 )
 
-add_executable(fuck main.cpp frame/main_frame.cpp frame/main_frame.h common_id.h model/user_model.cpp model/user_model.h util/common_api.cpp util/common_api.h frame/log_frame.cpp frame/log_frame.h util/simple_timer.cpp util/simple_timer.h frame/login_frame.cpp frame/login_frame.h frame/notebook/note_index.cpp frame/notebook/note_index.h model/remote_file_model.cpp model/remote_file_model.h common/common_event_ids.h)
+add_executable(fuck main.cpp frame/main_frame.cpp frame/main_frame.h common_id.h model/user_model.cpp model/user_model.h util/common_api.cpp util/common_api.h frame/log_frame.cpp frame/log_frame.h util/simple_timer.cpp util/simple_timer.h frame/login_frame.cpp frame/login_frame.h frame/notebook/note_index.cpp frame/notebook/note_index.h model/remote_file_model.cpp model/remote_file_model.h common/common_event_ids.h util/common_util.h frame/notebook/remote_download_task.cpp frame/notebook/remote_download_task.h model/remote_download_task_model.cpp model/remote_download_task_model.h frame/notebook/remote_user_file_panel.cpp frame/notebook/remote_user_file_panel.h)
 find_package(wxWidgets)
 find_package(cpprestsdk REQUIRED cpprestsdk cpprest web pplx)
 FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED filesystem system chrono thread)

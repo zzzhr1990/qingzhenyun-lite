@@ -18,6 +18,7 @@ enum {
     USER_LOGIN_RESPONSE = 1001,
     USER_REFRESH_RESPONSE = 1002,
     USER_REMOTE_FILE_PAGE_DATA = 2001,
+    USER_REMOTE_TASK_PAGE_DATA = 2002
 };
 
 static void SendCommonThreadEvent(wxWindow* handler,const int& type_id, const ResponseEntity & v, const bool & checkMessage=false) {

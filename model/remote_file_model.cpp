@@ -43,8 +43,8 @@ utility::string_t RemoteFileModel::GetCurrentPath() {
 }
 
 void
-RemoteFileModel::UpateCurrentLocation(const utility::string_t &path, const utility::string_t &fileId, const int &page,
-                                      const int &pageSize, const int &totalPage,const utility::string_t &parent) {
+RemoteFileModel::UpdateCurrentLocation(const utility::string_t &path, const utility::string_t &fileId, const int &page,
+                                       const int &pageSize, const int &totalPage, const utility::string_t &parent) {
     this->current_path = path;
     this->current_file_id = fileId;
     this->current_page = page;

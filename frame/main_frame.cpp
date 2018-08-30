@@ -5,6 +5,7 @@
 #include "main_frame.h"
 #include "../common_id.h"
 #include "./notebook/note_index.h"
+#include "../util/common_util.h"
 
 MainFrame::MainFrame(const wxString& title, int w, int h)
         : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition,  wxSize(w, h))
@@ -104,7 +105,8 @@ void MainFrame::OnThreadEvent(wxThreadEvent& event)
     int eventType = event.GetInt();
     if(eventType == USER_REFRESH_RESPONSE){
         long d = event.GetTimestamp();
-        SetStatusText(wxString::Format(_T("User info update at...%ld"), d));
+        time_t time = d;
+        SetStatusText(wxString::Format(_T("User info update at...%s"), ConvertTimeToDisplay(time),"%Y-%m-%d %H:%M"));
     }else{
         SetStatusText(wxString::Format(_T("Unknown event type...%d"), eventType));
     }

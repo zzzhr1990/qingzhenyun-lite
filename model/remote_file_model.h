@@ -44,7 +44,8 @@ public:
         return current_parent;
     }
 
-    void UpateCurrentLocation(const utility::string_t &path,const utility::string_t &fileId, const int &page, const int &pageSize, const int &totalPage,const utility::string_t &parent);
+    void UpdateCurrentLocation(const utility::string_t &path, const utility::string_t &fileId, const int &page,
+                               const int &pageSize, const int &totalPage, const utility::string_t &parent);
     utility::string_t GetCurrentPath();
 
 private:
