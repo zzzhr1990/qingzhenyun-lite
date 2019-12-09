@@ -1,40 +1,111 @@
-cmake_minimum_required(VERSION 3.12)
-project(fuck)
+cmake_minimum_required(VERSION 3.15)
 
+project(qingzhenyun_lite)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set(OPENSSL_INCLUDE_DIR "/usr/local/opt/openssl/include")
-set(OPENSSL_LIB_DIR "/usr/local/opt/openssl/lib")
-SET(OPENSSL_INCLUDE_DIR "/usr/local/opt/openssl/include")
-SET (BOOST_ROOT "/usr/local/opt/boost")
-SET (BOOST_INCLUDEDIR "/usr/local/opt/boost/include")
-SET (BOOST_LIBRARYDIR "/usr/local/opt/boost/lib")
-SET (BOOST_MIN_VERSION "1.67")
-SET (Boost_NO_BOOST_CMAKE ON)
+
+if (POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW) # use MACOSX_RPATH
+endif ()
+if (UNIX)
+    project(qingzhenyun_lite C CXX)
+else ()
+    project(qingzhenyun_lite CXX)
+endif ()
+
+set(QINGZHEN_VERSION_MAJOR 2)
+set(QINGZHEN_VERSION_MINOR 10)
+set(QINGZHEN_VERSION_REVISION 14)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries")
+
+if (WIN32)
+    set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Default filename postfix for libraries under configuration DEBUG")
+else ()
+    set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "Default filename postfix for libraries under configuration DEBUG")
+endif ()
+
+if (WIN32)
+    set(TOOLSET)
+    if (CMAKE_VS_PLATFORM_TOOLSET)
+        string(REGEX REPLACE "^v" "" TOOLSET "${CMAKE_VS_PLATFORM_TOOLSET}")
+    endif ()
+    set(QINGZHEN_ABI_TAG "${TOOLSET}_${QINGZHEN_VERSION_MAJOR}_${QINGZHEN_VERSION_MINOR}" CACHE STRING "Postfix tag for the cpprest abi")
+else ()
+    set(QINGZHEN_ABI_TAG "" CACHE STRING "Postfix tag for the cpprest abi")
+endif ()
+
+if (ANDROID)
+    set(Boost_USE_STATIC_LIBS ON CACHE BOOL "Link against boost statically.")
+else ()
+    set(Boost_USE_STATIC_LIBS OFF CACHE BOOL "Link against boost statically.")
+endif ()
+
+include(cmake/find_lib.cmake)
 
 
-include_directories(
-        /usr/local/opt/openssl/include
-)
+include(CheckIncludeFiles)
+include(GNUInstallDirs)
 
-link_directories(
-        /usr/local/opt/openssl/lib
-)
+find_package(Threads REQUIRED)
+if (THREADS_HAVE_PTHREAD_ARG)
+    add_compile_options(-pthread)
+endif ()
+if (CMAKE_THREAD_LIBS_INIT)
+    link_libraries(${CMAKE_THREAD_LIBS_INIT})
+endif ()
 
-add_executable(fuck main.cpp frame/main_frame.cpp frame/main_frame.h common_id.h model/user_model.cpp model/user_model.h util/common_api.cpp util/common_api.h frame/log_frame.cpp frame/log_frame.h util/simple_timer.cpp util/simple_timer.h frame/login_frame.cpp frame/login_frame.h frame/notebook/note_index.cpp frame/notebook/note_index.h model/remote_file_model.cpp model/remote_file_model.h common/common_event_ids.h util/common_util.h frame/notebook/remote_download_task.cpp frame/notebook/remote_download_task.h model/remote_download_task_model.cpp model/remote_download_task_model.h frame/notebook/remote_user_file_panel.cpp frame/notebook/remote_user_file_panel.h)
-find_package(wxWidgets)
-find_package(cpprestsdk REQUIRED cpprestsdk cpprest web pplx)
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED filesystem system chrono thread)
-FIND_PACKAGE(OpenSSL 1.0.1 REQUIRED)
-include(${wxWidgets_USE_FILE} ${cpprestsdk_INCLUDE_FILE} ${Boost_USE_FILE} ${OPENSSL_USE_FILE})
-target_link_libraries(fuck ${wxWidgets_LIBRARIES} cpprestsdk::cpprest ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+if (NOT WIN32)
+    CHECK_INCLUDE_FILES(xlocale.h HAVE_XLOCALE_H)
+endif ()
 
-#FOREACH(LETTER ${OPENSSL_LIBRARIES})
-#    MESSAGE(WARNING "<<${LETTER}>>")
-#ENDFOREACH()
-#MESSAGE(WARNING "OK -")
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
+if (UNIX) # This includes OSX
+elseif (WIN32)
+    add_definitions(-DUNICODE -D_UNICODE -DWIN32 -D_SCL_SECURE_NO_WARNINGS)
+    if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        add_definitions(-D_WIN32_WINNT=0x0A00)
+    else ()
+        add_definitions(-D_WIN32_WINNT=0x0600)
+    endif ()
+
+    if (NOT BUILD_SHARED_LIBS)
+        # This causes cmake to not link the test libraries separately, but instead hold onto their object files.
+        set(TEST_LIBRARY_TARGET_TYPE OBJECT)
+    endif ()
+
+    add_definitions(-D_WINSOCK_DEPRECATED_NO_WARNINGS)
+else ()
+    message(FATAL_ERROR "-- Unsupported Build Platform.")
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    message("-- Setting msvc options")
+    set(WARNINGS)
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /ignore:4264")
+    add_compile_options(/bigobj)
+    add_compile_options("/utf-8")
+    # add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    # add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MP")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /MP")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MP")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MP")
+
+    set(CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL "${CMAKE_SHARED_LINKER_FLAGS_MINSIZEREL} /profile /OPT:REF /OPT:ICF")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /profile /OPT:REF /OPT:ICF")
+
+    if (WINDOWS_STORE OR WINDOWS_PHONE)
+        add_compile_options(/ZW)
+    else ()
+        if (NOT (MSVC_VERSION LESS 1920))
+            add_compile_options(/permissive-)
+        endif ()
+    endif ()
+endif ()
+
+# Reconfigure final output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Binaries)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Binaries)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/Binaries)
+
+add_subdirectory(src)
+add_subdirectory(cli)
