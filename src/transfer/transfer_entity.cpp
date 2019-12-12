@@ -20,7 +20,7 @@ std::shared_ptr<transfer_result> qingzhen::transfer::transfer_result::create() {
 void transfer_result::cancel() {
     this->cancelled = true;
     this->success = false;
-    this->error_message = _XPLATSTR(_XPLATSTR("Cancelled"));
+    this->error_message = _XPLATSTR("Cancelled");
     this->error_reference = _XPLATSTR("CANCELLED");
 }
 
