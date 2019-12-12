@@ -17,7 +17,7 @@ set(SOURCES
         api/file.cpp
         api/file_requests.cpp
         string_util.cpp
-        )
+        transfer/transfer_entity.cpp transfer/transfer_manager.cpp transfer/transfer_item.cpp transfer/single_file_task.cpp)
 
 add_library(qingzhen ${SOURCES})
 target_include_directories(qingzhen

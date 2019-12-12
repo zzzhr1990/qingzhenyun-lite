@@ -14,6 +14,8 @@
 #include <qingzhen/string_util.h>
 #include <qingzhen/api/user_api_client.hpp>
 #include <qingzhen/api/user_file_client.hpp>
+#include <qingzhen/transfer/transfer_manager.h>
+
 
 #include <chrono>
 #include <thread>
@@ -69,11 +71,16 @@ int main() {
             break;
         }
     }
+    auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
+    QZOUTPUT << _XPLATSTR("Download to current path: ") << location << QZEND;
 
+    qingzhen::transfer::transfer_manager::instance().add_download(user_file_result.data()->parent(), location);
 
     QZOUTPUT << _XPLATSTR("Press Enter to exit...") << QZEND;
+    qingzhen::transfer::transfer_manager::instance().start();
     std::cin.get();
     std::cout << "Cancel task..." << std::endl;
+    qingzhen::transfer::transfer_manager::instance().shutdown();
     token_source.cancel();
     std::cout << "Cancel finished..." << std::endl;
     return 0;

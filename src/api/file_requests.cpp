@@ -4,6 +4,8 @@
 
 #include <qingzhen/api/file_requests.h>
 
+#include <utility>
+
 using namespace qingzhen::api;
 
 web::json::value file_list_request::to_json() const {
@@ -22,4 +24,10 @@ web::json::value file_list_request::to_json() const {
 file_list_request::file_list_request(file parent_file_data) : parent_entity(std::make_shared<file>(parent_file_data)),
                                                               directory(0),
                                                               start(-1), limit(-1) {
+}
+
+file_list_request::file_list_request(std::shared_ptr<file> parent_file_data) : parent_entity(
+        std::move(parent_file_data)),
+                                                                               directory(0),
+                                                                               start(-1), limit(-1) {
 }

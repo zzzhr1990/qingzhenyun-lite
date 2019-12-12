@@ -15,8 +15,10 @@ namespace qingzhen::api {
     public:
         explicit file_list_request(file parent_file_data);
 
-        property <int64_t> start;
-        property <int64_t> limit;
+        explicit file_list_request(std::shared_ptr<file> parent_file_data);
+
+        property<int64_t> start;
+        property<int64_t> limit;
         property<int> directory;
         std::map<utility::string_t, utility::string_t> sort_map;
 
