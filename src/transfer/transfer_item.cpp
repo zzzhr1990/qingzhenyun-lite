@@ -4,6 +4,7 @@
 
 #include <qingzhen/transfer/transfer_item.h>
 #include <qingzhen/api/user_file_client.hpp>
+#include <boost/log/trivial.hpp>
 
 using namespace qingzhen::transfer;
 
@@ -156,12 +157,12 @@ void transfer_item::_tick() {
 
     if (all_success) {
         this->_status = transfer_status::complete;
-        std::cout << "task complete: " << this->remote_file()->name() << std::endl;
+        BOOST_LOG_TRIVIAL(info) << _XPLATSTR("task complete: ") << this->remote_file()->name().c_str();
         return;
     }
 
     if (success == 0 && !has_transfer && has_error) {
-        std::cout << "task error: " << this->remote_file()->name() << std::endl;
+        BOOST_LOG_TRIVIAL(info) << _XPLATSTR("task error: ") << this->remote_file()->name().c_str();
         this->_status = transfer_status::fatal_error;
     }
 }
