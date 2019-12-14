@@ -94,15 +94,20 @@ namespace qingzhen::api {
             } catch (const pplx::task_canceled &) {
                 cst.success = false;
                 cst.cancel = true;
+                cst.error_ref = _XPLATSTR("TASK_CANCELLED");
+                cst.error_message = _XPLATSTR("Task cancelled");
             } catch (const web::http::http_exception &hex) {
                 auto e_code = hex.error_code().value();
                 if (e_code == ECANCELED) {
                     cst.success = false;
                     cst.cancel = true;
+                    cst.error_ref = _XPLATSTR("TASK_CANCELLED");
+                    cst.error_message = _XPLATSTR("Task cancelled");
                 } else {
                     cst.success = false;
                     cst.cancel = false;
                     cst.error_ref = _XPLATSTR("NETWORK_ERROR");
+                    cst.error_message = _XPLATSTR("Network error");
                     utility::conversions::to_string_t(utility::conversions::utf8_to_utf16(hex.what()));
 
                 }

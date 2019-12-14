@@ -13,8 +13,8 @@ qingzhen::transfer::transfer_result::transfer_result() : success(false), cancell
 
 }
 
-std::shared_ptr<transfer_result> qingzhen::transfer::transfer_result::create() {
-    return std::shared_ptr<transfer_result>(new transfer_result());
+std::unique_ptr<transfer_result> qingzhen::transfer::transfer_result::create() {
+    return std::unique_ptr<transfer_result>(new transfer_result());
 }
 
 void transfer_result::cancel() {
@@ -25,6 +25,8 @@ void transfer_result::cancel() {
 }
 
 void transfer_result::error(const utility::string_t &err_ref, const utility::string_t &err_message) {
+    this->cancelled = false;
+    this->success = false;
     this->error_reference = err_ref;
     this->error_message = err_message;
 }

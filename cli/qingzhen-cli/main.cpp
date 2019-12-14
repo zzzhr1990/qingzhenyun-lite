@@ -25,7 +25,7 @@ int main() {
     pplx::cancellation_token_source token_source;
     utility::string_t test_download_directory = _XPLATSTR("/");
     utility::string_t user_token = _XPLATSTR(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6NSwibmFtZSI6Inp6emhyIiwidmVyc2lvbiI6Miwic3NpZCI6IjA0ODk0MTkxLWU3MGItNDc0OC04NTBlLTJjNTY4Mzk0MTcxMSIsImRldmljZSI6IlBvc3RtYW5SdW50aW1lLzcuMTkuMCIsInBlcm1pc3Npb24iOjMsInNpZ25UaW1lIjoxNTczNTc5NjIzODM4LCJsb2dpblRpbWUiOjE1NzM1Nzk2MjM4MTMsImxvZ2luQWRkciI6IjYwLjI1My4yMzAuMjE4IiwiaWF0IjoxNTczNTc5NjIzLCJleHAiOjE1NzYxNzE2MjN9.eiGA57eIOwYbMF1WxbdxusQme2iXw3wquX3wD6d9V_4");
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6NSwibmFtZSI6Inp6emhyIiwidmVyc2lvbiI6Miwic3NpZCI6ImM4OGU1ZjIxLTA0OTctNDlkYy1hNzJmLWVjZmM1NDdhZTYzZCIsImRldmljZSI6IlBvc3RtYW5SdW50aW1lLzcuMjAuMSIsInBlcm1pc3Npb24iOjMsInNpZ25UaW1lIjoxNTc2MTc0MDM0MjQxLCJsb2dpblRpbWUiOjE1NzYxNzQwMzQwMjYsImxvZ2luQWRkciI6IjE3MS40My4xNDYuMTQ1IiwiaWF0IjoxNTc2MTc0MDM0LCJleHAiOjE1Nzg3NjYwMzR9.zEWAVfIPy1_dThNV-a1Q5FKIvo3mkSkeV5X7_Qtfwcg");
     std::cout << "Starting..." << std::endl;
     //
 
@@ -42,7 +42,7 @@ int main() {
              << qingzhen::string_util::pretty_bytes(user_result.data()->space_capacity()).data() << QZEND;
 
     qingzhen::api::file file_req;
-    file_req.path = _XPLATSTR("/");
+    file_req.path = _XPLATSTR("/6482");
     qingzhen::api::file_list_request dir_req(file_req);
     std::cout << "Listing root directory..." << std::endl;
     auto start = std::chrono::system_clock::now();
@@ -53,7 +53,8 @@ int main() {
     }
     auto dur = (std::chrono::system_clock::now() - start) / std::chrono::milliseconds(1);
     QZOUTPUT << _XPLATSTR("Root dir dir: ") << user_file_result.data()->list().size() << _XPLATSTR(" in ") << dur
-             << _XPLATSTR(" milliseconds") << QZEND;
+             << _XPLATSTR(" milliseconds file size: ")
+             << qingzhen::string_util::pretty_bytes(user_file_result.data()->parent()->size()) << QZEND;
 
     // get first dir
     if (user_file_result.data()->list().empty()) {
@@ -62,17 +63,18 @@ int main() {
     }
 
     auto list = user_file_result.data()->list();
-    int count = 0;
+    // int count = 0;
     for (const auto &dt : list) {
         QZOUTPUT << _XPLATSTR("File: ") << dt->path() << _XPLATSTR(" Size: ")
                  << qingzhen::string_util::pretty_bytes(dt->size()).c_str() << QZEND;
-        count++;
-        if (count > 10) {
-            break;
-        }
+        // count++;
+        // if (count > 10) {
+        //    break;
+        //}
     }
     auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
-    QZOUTPUT << _XPLATSTR("Download to current path: ") << location << QZEND;
+    QZOUTPUT << _XPLATSTR("Download to current path: ") << user_file_result.data()->parent()->path->c_str()
+             << _XPLATSTR(" => ") << location << QZEND;
 
     qingzhen::transfer::transfer_manager::instance().add_download(user_file_result.data()->parent(), location);
 

@@ -9,17 +9,13 @@ using namespace qingzhen::transfer;
 
 const int MAX_RETRY_TIME = 5;
 
-std::shared_ptr<transfer_item> transfer_item::get_ptr() {
-    return shared_from_this();
-}
 
 transfer_item::transfer_item(const std::shared_ptr<qingzhen::api::file> &file,
                              const std::shared_ptr<std::filesystem::path> &dest,
                              qingzhen::transfer::transfer_direction dir) : remote_file(file),
-                                                                           local_parent_path(dest), _select(true),
-                                                                           _parsed(false), direction(dir),
-                                                                           _status(transfer_status::add),
-                                                                           _failed_count(0) {
+                                                                           local_parent_path(dest),
+                                                                           _parsed(false),
+                                                                           base_file_task<transfer_item>(dir) {
 
 }
 
@@ -29,43 +25,15 @@ transfer_item::create(const std::shared_ptr<qingzhen::api::file> &file, const st
     return std::shared_ptr<transfer_item>(new transfer_item(file, std::make_shared<std::filesystem::path>(dest), dir));
 }
 
-bool transfer_item::start(pplx::cancellation_token token) {
-    // return can continue
-    std::lock_guard<std::mutex> _start(this->mutex);
-    // selected?
-    if (!this->_select.load()) {
-        return false; // need to continue next
-    }
-    if (this->_status == transfer_status::complete || this->_status == transfer_status::pause ||
-        this->_status == transfer_status::fatal_error) {
-        return false; // need to continue next
-    }
-    if (this->_status == transfer_status::pre_checking || this->_status == transfer_status::transfer ||
-        this->_status == transfer_status::after_checking) {
-        return true; // doing, not transfer
-    }
 
-    if (!this->cancellation_token_source.get_token().is_canceled()) {
-        this->cancellation_token_source.cancel();
-    }
-
-    // start transfer...;
-    // auto token_s = this->cancellation_token_source.get_token();
-    //
-    this->cancellation_token_source = pplx::cancellation_token_source::create_linked_source(token);
-    this->_status = transfer_status::pre_checking;
-    this->_failed_count.store(0);
-    auto ptr = get_ptr();
-    auto cancellation_token = this->cancellation_token_source.get_token();
-    pplx::create_task([ptr, cancellation_token]() { ptr->parse_task_sync(cancellation_token); });
-    return true;
-}
 
 void transfer_item::parse_task_sync(const pplx::cancellation_token &cancellation_token) {
     this->_tasks.clear();
     // status should be pre checking
     if (this->direction() == transfer_direction::download) {
         this->parse_download_task_sync(cancellation_token);
+    } else {
+        std::cout << _XPLATSTR("Not support") << std::endl;
     }
 }
 
@@ -82,7 +50,7 @@ bool transfer_item::parse_remote_directory_sync(const std::shared_ptr<qingzhen::
         return false;
     }
     if (!result.success()) {
-        this->on_error(result.error_ref(), result.error_message());
+        this->on_error_lock(result.error_ref(), result.error_message(), MAX_RETRY_TIME);
         return false;
     }
     for (auto &single_file : result.data()->list()) {
@@ -95,8 +63,8 @@ bool transfer_item::parse_remote_directory_sync(const std::shared_ptr<qingzhen::
             try {
                 cur_path.append(single_file->name());
             } catch (const std::exception &) {
-                this->on_error(_XPLATSTR("FILENAME_ILLEGAL_ON_YOUR_SYSTEM"),
-                               _XPLATSTR("File name illegal on your system"));
+                this->on_error_lock(_XPLATSTR("FILENAME_ILLEGAL_ON_YOUR_SYSTEM"),
+                                    _XPLATSTR("File name illegal on your system"), MAX_RETRY_TIME);
                 return false;
             }
             auto suc = this->parse_remote_directory_sync(single_file, std::make_shared<std::filesystem::path>(cur_path),
@@ -109,16 +77,6 @@ bool transfer_item::parse_remote_directory_sync(const std::shared_ptr<qingzhen::
     return true;
 }
 
-void transfer_item::on_error(const utility::string_t &error_referer, const utility::string_t &error_message) {
-    std::cout << "on error: " << error_referer.c_str() << std::endl;
-    std::lock_guard<std::mutex> _error(this->mutex);
-    this->_failed_count.fetch_add(1);
-    if (this->_failed_count > MAX_RETRY_TIME) {
-        this->_status = transfer_status::fatal_error;
-    } else {
-        this->_status = transfer_status::error;
-    }
-}
 
 void transfer_item::parse_download_task_sync(const pplx::cancellation_token &cancellation_token) {
     if (!this->_parsed) {
@@ -127,7 +85,16 @@ void transfer_item::parse_download_task_sync(const pplx::cancellation_token &can
             this->_tasks.emplace_back(
                     single_file_task::create(this->remote_file(), this->local_parent_path(), this->direction()));
             // loop
-            _parsed = this->parse_remote_directory_sync(this->remote_file(), this->local_parent_path(),
+            std::filesystem::path cur_path = std::filesystem::path(*this->local_parent_path());
+            try {
+                cur_path.append(this->remote_file()->name());
+            } catch (const std::exception &) {
+                this->on_error_lock(_XPLATSTR("FILENAME_ILLEGAL_ON_YOUR_SYSTEM"),
+                                    _XPLATSTR("File name illegal on your system"), MAX_RETRY_TIME);
+                return;
+            }
+            _parsed = this->parse_remote_directory_sync(this->remote_file(),
+                                                        std::make_shared<std::filesystem::path>(cur_path),
                                                         cancellation_token);
         } else {
 
@@ -145,9 +112,57 @@ void transfer_item::parse_download_task_sync(const pplx::cancellation_token &can
         return;
     }
 
-    std::cout << _XPLATSTR("Starting task") << this->_tasks.size() << std::endl;
-    this->mutex.lock();
-    this->_status = transfer_status::transfer;
-    this->mutex.unlock();
+    this->update_status_with_lock(transfer_status::transfer);
+
+}
+
+void transfer_item::_tick() {
+    std::cout << "tick: " << std::endl;
+    const int MAX_CONCURRENT_FILE = 2;
+    int success = 0;
+    bool all_success = true;
+    bool has_error = false;
+    bool has_transfer = false;
+    if (this->_status != transfer_status::transfer) {
+        return;
+    }
+    auto tk = this->cancellation_token_source.get_token();
+    for (auto &sig_task : this->_tasks) {
+        if (tk.is_canceled()) {
+            return;
+        }
+        if (sig_task->start(tk)) {
+            success++;
+        } else {
+            // check if complete
+            auto task_status = sig_task->get_status_with_lock();
+            if (task_status != transfer_status::complete) {
+                all_success = false;
+                if (task_status != transfer_status::fatal_error) {
+                    has_transfer = true;
+                }
+            }
+            if (task_status == transfer_status::fatal_error) {
+                has_error = true;
+            }
+        }
+        if (success >= MAX_CONCURRENT_FILE) {
+            all_success = false;
+            break;
+        }
+    }
+
+    // if(success == 0)
+
+    if (all_success) {
+        this->_status = transfer_status::complete;
+        std::cout << "task complete: " << this->remote_file()->name() << std::endl;
+        return;
+    }
+
+    if (success == 0 && !has_transfer && has_error) {
+        std::cout << "task error: " << this->remote_file()->name() << std::endl;
+        this->_status = transfer_status::fatal_error;
+    }
 }
 

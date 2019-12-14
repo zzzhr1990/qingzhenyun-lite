@@ -7,7 +7,6 @@
 
 #include <cpprest/details/basic_types.h>
 #include <qingzhen/properity.hpp>
-
 namespace qingzhen::transfer {
     enum class transfer_direction {
         download = 0, upload = 1, sync = 2
@@ -26,7 +25,7 @@ namespace qingzhen::transfer {
 
     class transfer_result {
     public:
-        static std::shared_ptr<transfer_result> create();
+        static std::unique_ptr<transfer_result> create();
 
         void cancel();
 
