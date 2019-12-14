@@ -66,7 +66,7 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
         return;
     }
     // we got file
-    std::cout << "Download file: " << task->remote_file()->path() << " to: =>  " << file_path.c_str() << std::endl;
+	BOOST_LOG_TRIVIAL(info) << _XPLATSTR("Download file: ") << task->remote_file()->path().c_str() << _XPLATSTR(" to: =>  ") << file_path.c_str();
 
     // split file
     if (cancellation_token.is_canceled()) {

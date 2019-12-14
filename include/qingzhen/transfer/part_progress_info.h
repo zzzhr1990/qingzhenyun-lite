@@ -6,6 +6,8 @@
 #define QINGZHENYUN_LITE_PART_PROGRESS_INFO_H
 
 #include <qingzhen/properity.hpp>
+#include <memory>
+#include <atomic>
 
 namespace qingzhen::transfer {
     class part_progress_info {
