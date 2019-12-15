@@ -12,6 +12,7 @@
 #define QZEND std::endl
 
 #include <qingzhen/string_util.h>
+#include <qingzhen/path_util.h>
 #include <qingzhen/api/user_api_client.hpp>
 #include <qingzhen/api/user_file_client.hpp>
 #include <qingzhen/transfer/transfer_manager.h>
@@ -21,6 +22,13 @@
 #include <thread>
 
 int main() {
+    auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
+    location.append(_XPLATSTR("100GB.test"));
+    QZOUTPUT << _XPLATSTR("Path: ") << location.c_str() << std::endl;
+    std::cout << qingzhen::path_util::ensure_and_alloc_file(location, 107374182400ll) << std::endl;
+}
+
+int main2() {
 
     pplx::cancellation_token_source token_source;
     utility::string_t test_download_directory = _XPLATSTR("/");

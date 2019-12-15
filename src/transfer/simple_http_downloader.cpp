@@ -5,6 +5,7 @@
 #include <qingzhen/transfer/simple_http_downloader.h>
 #include <qingzhen/path_util.h>
 #include <boost/log/trivial.hpp>
+#include <qingzhen/api/user_file_client.hpp>
 
 using namespace qingzhen::transfer;
 
@@ -180,21 +181,37 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     }
 
     utility::stringstream_t st;
-    st << _XPLATSTR("___________>>> File: ") << task->remote_file()->name() << _XPLATSTR(" size: ") << file_size
+    st << _XPLATSTR("File: ") << task->remote_file()->name() << _XPLATSTR(" size: ") << file_size
        << _XPLATSTR("\r\n");
     for (auto &s : *task->progress->list()) {
         st << _XPLATSTR("Part: ") << s->part_id(
 
         ) << _XPLATSTR(" range: ") << s->start_index() << _XPLATSTR(" => ")
-           << s->end_index() << std::endl;
+           << s->end_index();
     }
-    std::cout << st.str().c_str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << st.str().c_str();
     // Okay. >>>>====>>
+    /*
     BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
     BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
     BOOST_LOG_TRIVIAL(info) << "An informational severity message";
     BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
     BOOST_LOG_TRIVIAL(error) << "An error severity message";
     BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
+     */
+
+    // start download...
+    qingzhen::api::file file_request;
+    file_request.identity = task->remote_file()->identity();
+    auto download_info = qingzhen::api::user_file_client::get_download_info(file_request, cancellation_token).get();
+    if (download_info.cancel()) {
+        return;
+    }
+    if (!download_info.success()) {
+        task->on_error_lock(download_info.error_ref(), download_info.error_message(), MAX_ERROR_COUNT);
+        return;
+    }
+    //
+
 }
 

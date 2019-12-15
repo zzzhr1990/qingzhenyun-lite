@@ -11,6 +11,8 @@ namespace qingzhen {
     class path_util {
     public:
         static bool ensure_directory(const std::filesystem::path &path);
+
+        static bool ensure_and_alloc_file(const std::filesystem::path &path, int64_t file_size);
     };
 }
 
