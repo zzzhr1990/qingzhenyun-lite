@@ -22,7 +22,7 @@
 #include <thread>
 
 int main() {
-    auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
+    auto location = std::filesystem::path(_XPLATSTR("D:\\TEST")).append(_XPLATSTR("TDD"));
     location.append(_XPLATSTR("100GB.test"));
     QZOUTPUT << _XPLATSTR("Path: ") << location.c_str() << std::endl;
     std::cout << qingzhen::path_util::ensure_and_alloc_file(location, 107374182400ll) << std::endl;

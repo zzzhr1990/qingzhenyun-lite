@@ -3,6 +3,9 @@
 //
 
 #include <qingzhen/path_util.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif // _WIN32
 
 #ifdef __APPLE__
 
@@ -59,15 +62,15 @@ bool path_util::ensure_and_alloc_file(const std::filesystem::path &path, const i
         LARGE_INTEGER size;
         size.QuadPart = file_size;
         if(!::SetFilePointerEx(handle, size, 0, FILE_BEGIN)){
-            CloseHandle(file);
+            CloseHandle(handle);
             return false;
         }
         if(!::SetEndOfFile(handle)){
-            CloseHandle(file);
+            CloseHandle(handle);
             return false;
         }
         // ::SetFilePointer(handle, 0, 0, FILE_BEGIN);
-        CloseHandle(file);
+        CloseHandle(handle);
         return true;
 #elif __APPLE__
         FILE *fp = fopen(path.c_str(), "w+");
