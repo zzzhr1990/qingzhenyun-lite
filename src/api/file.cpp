@@ -34,6 +34,7 @@ qingzhen::api::file::file() : identity(utility::string_t()),
 }
 
 bool qingzhen::api::file::parse(const web::json::value &v) {
+    // std::cout << "____SER: " << v.serialize().c_str() << std::endl;
     if (!v.has_string_field(_XPLATSTR("identity"))) {
         return false;
     }
@@ -145,6 +146,7 @@ bool qingzhen::api::file::parse(const web::json::value &v) {
 web::json::value qingzhen::api::file::to_json() const {
     web::json::value res;
     res[_XPLATSTR("path")] = web::json::value(this->path());
+    res[_XPLATSTR("identity")] = web::json::value(this->identity());
     res[_XPLATSTR("name")] = web::json::value(this->name());
     res[_XPLATSTR("hash")] = web::json::value(this->hash());
     return res;

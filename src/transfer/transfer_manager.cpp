@@ -70,7 +70,8 @@ void transfer_manager::_check() {
     // 1. check download queue
     int count = 0;
     for (const auto &single_item : this->_download_queue) {
-        if (single_item->start(this->cancellation_token_source.get_token())) {
+        auto cont = single_item->start(this->cancellation_token_source.get_token());
+        if (cont.first) {
             count++;
         }
         if (count >= this->concurrent_task.load()) {
@@ -103,7 +104,8 @@ bool transfer_manager::_add_download(const std::shared_ptr<qingzhen::api::file> 
             return false;
         }
     }
-    this->_download_queue.emplace_back(transfer_item::create(source, destination, transfer_direction::download));
+    this->_download_queue.emplace_back(
+            transfer_item::create(source, destination, transfer_direction::download, source->size()));
     return true;
 }
 

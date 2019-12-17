@@ -21,14 +21,8 @@
 #include <chrono>
 #include <thread>
 
-int main() {
-    auto location = std::filesystem::path(_XPLATSTR("D:\\TEST")).append(_XPLATSTR("TDD"));
-    location.append(_XPLATSTR("100GB.test"));
-    QZOUTPUT << _XPLATSTR("Path: ") << location.c_str() << std::endl;
-    std::cout << qingzhen::path_util::ensure_and_alloc_file(location, 107374182400ll) << std::endl;
-}
 
-int main2() {
+int main() {
 
     pplx::cancellation_token_source token_source;
     utility::string_t test_download_directory = _XPLATSTR("/");
@@ -50,7 +44,7 @@ int main2() {
              << qingzhen::string_util::pretty_bytes(user_result.data()->space_capacity()).data() << QZEND;
 
     qingzhen::api::file file_req;
-    file_req.path = _XPLATSTR("/6482");
+    file_req.path = _XPLATSTR("/6482/ZAY19081203/Liu/1/June Liu  SpicyGum  Cute Asian Student Practicin.mp4");
     qingzhen::api::file_list_request dir_req(file_req);
     std::cout << "Listing root directory..." << std::endl;
     auto start = std::chrono::system_clock::now();
@@ -65,10 +59,10 @@ int main2() {
              << qingzhen::string_util::pretty_bytes(user_file_result.data()->parent()->size()) << QZEND;
 
     // get first dir
-    if (user_file_result.data()->list().empty()) {
-        QZOUTPUT << _XPLATSTR("Empty root dir exit...") << QZEND;
-        return 0;
-    }
+    // if (user_file_result.data()->list().empty()) {
+    //    QZOUTPUT << _XPLATSTR("Empty root dir exit...") << QZEND;
+    //    return 0;
+    // }
 
     auto list = user_file_result.data()->list();
     // int count = 0;

@@ -3,16 +3,17 @@
 //
 
 #include <qingzhen/path_util.h>
+
 #ifdef _WIN32
 #include <Windows.h>
-#endif // _WIN32
-
-#ifdef __APPLE__
+#else
 
 #include <fcntl.h>
-#include <zconf.h>
+#include <unistd.h>
 
-#endif
+#endif // _WIN32
+
+
 using namespace qingzhen;
 
 bool path_util::ensure_directory(const std::filesystem::path &path) {
@@ -48,13 +49,13 @@ bool path_util::ensure_and_alloc_file(const std::filesystem::path &path, const i
                 std::filesystem::remove_all(path);
             }
         }
-        // 1. windows
+        // Windows
 #ifdef _WIN32
-        HANDLE handle = CreateFile(path.c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+        HANDLE handle = CreateFile(path.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
         if (handle == INVALID_HANDLE_VALUE) {
             return false;
         }
-        /* OLD
+        /* old Windows
          * LARGE_INTEGER size;
             size.HighPart = (uint32_t)((length & 0xFFFFFFFF00000000LL) >> 32);
             size.LowPart = (uint32_t)(length & 0xFFFFFFFFLL);
@@ -72,12 +73,13 @@ bool path_util::ensure_and_alloc_file(const std::filesystem::path &path, const i
         // ::SetFilePointer(handle, 0, 0, FILE_BEGIN);
         CloseHandle(handle);
         return true;
-#elif __APPLE__
+#else // Other standard system
         FILE *fp = fopen(path.c_str(), "w+");
         if (!fp) {
             return false;
         }
         int fd = fileno(fp);
+#ifdef __APPLE__
         fstore_t store = {F_ALLOCATECONTIG, F_PEOFPOSMODE, 0, file_size, 0};
         int ret = fcntl(fd, F_PREALLOCATE, &store);
         if (-1 == ret) {
@@ -95,18 +97,35 @@ bool path_util::ensure_and_alloc_file(const std::filesystem::path &path, const i
         fclose(fp);
         return true;
 #else
-        FILE *fp = fopen(path.c_str(), "w+");
-        if (!fp) {
-            return false;
-        }
-        int fd = fileno(fp);
         int ret = fallocate(fd, FALLOC_FL_ZERO_RANGE, 0, file_size);
         fclose(fp);
         return ret == 0;
-
+#endif // __APPLE__
 #endif // _WIN32
     } catch (const std::exception &) {
         return false;
     }
 
+}
+
+void path_util::clean_path(const std::filesystem::path &path) {
+    try {
+        std::filesystem::remove_all(path);
+    } catch (...) {}
+    // return false;
+}
+
+bool path_util::move_file(const std::filesystem::path &source, const std::filesystem::path &dest) {
+    try {
+        std::filesystem::remove_all(dest);
+    } catch (...) {
+    }
+
+    try {
+        std::filesystem::rename(source, dest);
+    } catch (...) {
+        return false;
+    }
+    return true;
+    // return false;
 }

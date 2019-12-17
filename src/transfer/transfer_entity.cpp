@@ -30,3 +30,7 @@ void transfer_result::error(const utility::string_t &err_ref, const utility::str
     this->error_reference = err_ref;
     this->error_message = err_message;
 }
+
+void transfer_result::hash_failed() {
+    this->error(_XPLATSTR("HASH_FAILED"), _XPLATSTR("Hash failed"));
+}
