@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <qingzhen/transfer/single_file_task.h>
+#include <atomic>
 
 namespace qingzhen::transfer {
     class simple_http_downloader : public std::enable_shared_from_this<simple_http_downloader> {
@@ -21,9 +22,19 @@ namespace qingzhen::transfer {
 
         void start(const std::shared_ptr<single_file_task> &task, const pplx::cancellation_token &cancellation_token);
 
+        std::tuple<bool, bool, utility::string_t>
+        check_support_ranges(utility::string_t url, pplx::cancellation_token cancellation_token, int redirect_count);
+
+        bool start_download_single_part(const utility::string_t &uri, const std::shared_ptr<single_file_task> &task,
+                                        size_t index, const std::filesystem::path &path,
+                                        const pplx::cancellation_token &cancellation_token);
+
+        void incr_global_counter(int64_t count);
+
     private:
         simple_http_downloader() = default;
 
+        std::atomic_int64_t _global_bytes_transfer = 0;
     };
 }
 #endif //QINGZHENYUN_LITE_SIMPLE_HTTP_DOWNLOADER_H

@@ -19,6 +19,10 @@ namespace qingzhen::transfer {
         qingzhen::property<std::shared_ptr<std::filesystem::path>> local_parent_path;
 
 
+        transfer_item(const transfer_item &) = delete;
+
+        transfer_item(const transfer_item &&) = delete;
+
         void parse_task_sync(const pplx::cancellation_token &cancellation_token) override;
 
         bool parse_remote_directory_sync(const std::shared_ptr<qingzhen::api::file> &file,
@@ -27,11 +31,14 @@ namespace qingzhen::transfer {
 
         static std::shared_ptr<transfer_item>
         create(const std::shared_ptr<qingzhen::api::file> &file, const std::filesystem::path &dest,
-               qingzhen::transfer::transfer_direction dir);
+               qingzhen::transfer::transfer_direction dir, int64_t size);
+
+        void refresh_progress() override;
 
     private:
         transfer_item(const std::shared_ptr<qingzhen::api::file> &file,
-                      const std::shared_ptr<std::filesystem::path> &dest, qingzhen::transfer::transfer_direction dir);
+                      const std::shared_ptr<std::filesystem::path> &dest, qingzhen::transfer::transfer_direction dir,
+                      int64_t size);
 
         void _tick() override;
 

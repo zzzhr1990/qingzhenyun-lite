@@ -31,6 +31,8 @@ namespace qingzhen::transfer {
 
         void error(const utility::string_t &err_ref, const utility::string_t &err_message);
 
+        void hash_failed();
+
         property<bool> success;
         property<bool> cancelled;
         property<utility::string_t> error_message;

@@ -14,6 +14,7 @@ namespace qingzhen::transfer {
     public:
         qingzhen::property<int64_t> start_index;
         qingzhen::property<int64_t> end_index;
+        qingzhen::property<int64_t> support_part;
         qingzhen::property<size_t> part_id;
         std::unique_ptr<std::atomic_int64_t> processed_index;
 
@@ -27,9 +28,11 @@ namespace qingzhen::transfer {
         part_progress_info(int64_t start_index, int64_t end_index, size_t part_id, int64_t processed_index) :
                 start_index(start_index),
                 end_index(end_index),
+                support_part(true),
                 part_id(part_id),
                 processed_index(std::make_unique<std::atomic_int64_t>(processed_index)) {
             //this->processed_index->store(processed_index);
+            //
         };
     };
 

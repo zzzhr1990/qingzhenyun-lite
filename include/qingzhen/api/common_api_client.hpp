@@ -76,8 +76,6 @@ namespace qingzhen::api {
 
                     return cst;
                 }
-
-                // std::errc::
                 const auto &json = resp.extract_json().get();
                 // parse
                 bool succ = cst.data()->parse(json);

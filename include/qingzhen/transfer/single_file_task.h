@@ -19,20 +19,27 @@ namespace qingzhen::transfer {
     public:
         qingzhen::property<std::shared_ptr<qingzhen::api::file>> remote_file;
         qingzhen::property<std::shared_ptr<std::filesystem::path>> local_parent_path;
-        std::atomic_int64_t progress_bytes_completed;
-        std::atomic_int64_t download_bytes_completed;
+        // std::atomic_int64_t progress_bytes_completed;
+        // std::atomic_int64_t download_bytes_completed;
         std::unique_ptr<qingzhen::transfer::transfer_progress> progress;
 
 
         static std::shared_ptr<single_file_task> create(const std::shared_ptr<qingzhen::api::file> &remote_source_file,
                                                         const std::shared_ptr<std::filesystem::path> &local_parent,
-                                                        transfer_direction tr_direction);
+                                                        transfer_direction tr_direction, int64_t size);
+
+        single_file_task(const single_file_task &) = delete;
+
+        single_file_task(const single_file_task &&) = delete;
+
+        void refresh_progress() override;
 
         void parse_task_sync(const pplx::cancellation_token &cancellation_token) override;
 
     private:
         single_file_task(const std::shared_ptr<qingzhen::api::file> &remote_source_file,
-                         const std::shared_ptr<std::filesystem::path> &local_parent, transfer_direction tr_direction);
+                         const std::shared_ptr<std::filesystem::path> &local_parent, transfer_direction tr_direction,
+                         int64_t size);
 
     };
 }

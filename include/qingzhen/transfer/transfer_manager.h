@@ -59,7 +59,7 @@ namespace qingzhen::transfer {
         std::atomic_bool shutdown_flag = false;
         std::atomic_bool init_flag = false;
         std::vector<std::shared_ptr<transfer_item>> _download_queue;
-        std::atomic_int concurrent_task = 2;
+        std::atomic_int concurrent_task = 1;
     };
 }
 #endif //QINGZHENYUN_LITE_TRANSFER_MANAGER_H

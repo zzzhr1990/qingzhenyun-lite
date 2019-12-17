@@ -20,13 +20,19 @@ namespace qingzhen::transfer {
 
         void load_from_file(const std::filesystem::path &file_path);
 
-        void dump_to_file(const std::filesystem::path &file_path);
+        void dump_to_file();
+
+        void set_not_support_range(int64_t file_size);
+
+        // void refresh_bytes();
 
         void add_part_progress(std::unique_ptr<part_progress_info> info);
 
         bool parsed();
 
         void set_parsed(bool new_parsed);
+
+        void clean();
 
         bool reset();
 
@@ -41,11 +47,15 @@ namespace qingzhen::transfer {
         explicit transfer_progress(transfer_direction direction);
 
         std::atomic_bool _parsed;
+        std::atomic_bool _part_support;
+        std::filesystem::path _path;
         transfer_direction _direction;
         std::shared_ptr<std::vector<std::unique_ptr<part_progress_info>>> _list;
         std::mutex mutex;
 
         bool _from_json(const web::json::value &value);
+
+        web::json::value _to_json();
     };
 }
 #endif //QINGZHENYUN_LITE_TRANSFER_PROGRESS_H
