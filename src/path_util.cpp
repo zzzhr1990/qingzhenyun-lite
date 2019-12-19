@@ -3,7 +3,7 @@
 //
 
 #include <qingzhen/path_util.h>
-
+#include <iostream>
 #ifdef _WIN32
 #include <Windows.h>
 #else
@@ -123,7 +123,8 @@ bool path_util::move_file(const std::filesystem::path &source, const std::filesy
 
     try {
         std::filesystem::rename(source, dest);
-    } catch (...) {
+    } catch (const std::exception&ex) {
+		std::cout << ex.what() << std::endl;
         return false;
     }
     return true;

@@ -64,6 +64,7 @@ if (WIN32 AND NOT WINDOWS_STORE AND NOT WINDOWS_PHONE)
     target_link_libraries(qingzhen PRIVATE
             bcrypt.lib
             crypt32.lib
+			Winhttp.lib
             )
 elseif (WINDOWS_STORE)
     if (NOT CMAKE_GENERATOR MATCHES "Visual Studio .*")

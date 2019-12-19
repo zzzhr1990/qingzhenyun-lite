@@ -3,7 +3,10 @@
 //
 
 #include <qingzhen/transfer/transfer_manager.h>
+#include <boost/log/trivial.hpp>
+#include <qingzhen/transfer/simple_http_downloader.h>
 #include <thread>
+#include <qingzhen/string_util.h>
 
 using namespace qingzhen::transfer;
 
@@ -78,7 +81,9 @@ void transfer_manager::_check() {
             break;
         }
     }
-    std::cout << "running download tasks: " << count << " speed: " << " - " << std::endl;
+	auto& downloader = qingzhen::transfer::simple_http_downloader::instance();
+	downloader->refresh_counter();
+	BOOST_LOG_TRIVIAL(info) << "Running download tasks: " << count << " speed: " << qingzhen::string_util::string_t_to_ansi(qingzhen::string_util::pretty_bytes(downloader->get_downloading_speed())) << "/s" << std::endl;
 }
 
 void transfer_manager::set_concurrent_task(int tasks) {

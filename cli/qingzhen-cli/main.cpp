@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by herui on 2019/12/8.
 //
 
@@ -44,13 +44,13 @@ int main() {
              << qingzhen::string_util::pretty_bytes(user_result.data()->space_capacity()).data() << QZEND;
 
     qingzhen::api::file file_req;
-    file_req.path = _XPLATSTR("/6482/ZAY19081203/Liu/1/June Liu  SpicyGum  Cute Asian Student Practicin.mp4");
+    file_req.path = _XPLATSTR("/1495");
     qingzhen::api::file_list_request dir_req(file_req);
     std::cout << "Listing root directory..." << std::endl;
     auto start = std::chrono::system_clock::now();
     auto user_file_result = qingzhen::api::user_file_client::list_directory(dir_req, token_source.get_token()).get();
     if (!user_file_result.success()) {
-        QZOUTPUT << _XPLATSTR("List root directory failed: ") << user_result.error_message().c_str() << QZEND;
+        QZOUTPUT << _XPLATSTR("List root directory failed: ") << user_file_result.error_message().c_str() << QZEND;
         return 1;
     }
     auto dur = (std::chrono::system_clock::now() - start) / std::chrono::milliseconds(1);
@@ -63,18 +63,26 @@ int main() {
     //    QZOUTPUT << _XPLATSTR("Empty root dir exit...") << QZEND;
     //    return 0;
     // }
-
+	/*
     auto list = user_file_result.data()->list();
-    // int count = 0;
+    int count = 0;
     for (const auto &dt : list) {
         QZOUTPUT << _XPLATSTR("File: ") << dt->path() << _XPLATSTR(" Size: ")
                  << qingzhen::string_util::pretty_bytes(dt->size()).c_str() << QZEND;
-        // count++;
-        // if (count > 10) {
-        //    break;
-        //}
+        count++;
+        if (count > 100) {
+            break;
+        }
     }
-    auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
+	return 0;
+	*/
+#ifdef _WIN32
+	auto location = std::filesystem::path(_XPLATSTR("D:\\TEST")).append(_XPLATSTR("Downloads"));
+#else
+	auto location = std::filesystem::current_path().append(_XPLATSTR("Downloads"));
+#endif // _WIN32
+
+    
     QZOUTPUT << _XPLATSTR("Download to current path: ") << user_file_result.data()->parent()->path->c_str()
              << _XPLATSTR(" => ") << location << QZEND;
 

@@ -17,18 +17,31 @@ qingzhen::transfer::file_hash_container::file_hash_container(std::filesystem::pa
 }
 
 std::unique_ptr<transfer_result>
-file_hash_container::hash_file(const pplx::cancellation_token &cancellation_token, bool calc_md5_and_sha1) {
+file_hash_container::hash_file(const pplx::cancellation_token& cancellation_token, bool calc_md5_and_sha1) {
+	auto result = std::move(transfer_result::create());
+	try {
+		this->buf.open(this->file_path, std::ios_base::in | std::ios_base::binary);
+		if (!this->buf.is_open()) {
+			result->hash_failed();
+			return result;
+		}
+	}
+	catch (const std::exception & ex) {
+		this->buf.close();
+		result->hash_failed();
+		return result;
+	}
+	auto ps = this->_hash_file(cancellation_token, calc_md5_and_sha1);
+	try {
+		this->buf.close();
+	}catch(...){}
+	return ps;
+}
+
+std::unique_ptr<transfer_result>
+file_hash_container::_hash_file(const pplx::cancellation_token &cancellation_token, bool calc_md5_and_sha1) {
     auto result = std::move(transfer_result::create());
-    try {
-        this->buf.open(this->file_path, std::ios_base::in | std::ios_base::binary);
-        if (!this->buf.is_open()) {
-            result->hash_failed();
-            return result;
-        }
-    } catch (const std::exception &ex) {
-        result->hash_failed();
-        return result;
-    }
+    
 
 
     // now open

@@ -12,6 +12,7 @@
 namespace qingzhen::transfer {
     template<typename _CharType>
     class basic_file_buf : public concurrency::streams::details::basic_streambuf<_CharType> {
+		typedef typename concurrency::streams::char_traits<_CharType> _traits;
         typedef typename concurrency::streams::details::basic_streambuf<_CharType>::int_type int_type;
         typedef typename concurrency::streams::details::basic_streambuf<_CharType>::pos_type pos_type;
         typedef typename concurrency::streams::details::basic_streambuf<_CharType>::off_type off_type;
@@ -41,7 +42,7 @@ namespace qingzhen::transfer {
 #endif
                 // _is_open = true;
                 // std::cout << "IS_OPEN_TRUE" << std::endl;
-                if (pos > 0) {
+                if (pos >= 0) {
                     current_pos = buf.pubseekpos(pos, std::ios_base::out);
                 }
                 // std::cout << "file: " << path.c_str() << " seek to:" << current_pos << std::endl;
@@ -53,6 +54,11 @@ namespace qingzhen::transfer {
         }
 
         void set_file_can_write(bool can_write) {
+			std::lock_guard<std::mutex> _mu(this->_buffer_mutex);
+			for (auto& ch : this->_buffer) {
+				this->buf.sputc(ch);
+				current_pos += 1;
+			}
             _can_write = can_write;
         }
 
@@ -145,7 +151,8 @@ namespace qingzhen::transfer {
         pplx::task<void> close(std::ios_base::openmode mode) override {
             // = (std::ios_base::in | std::ios_base::out) default func
             if (this->_is_open) {
-                this->buf.close();
+				this->buf.pubsync();
+				this->buf.close();
                 this->_is_open = false;
             }
             return pplx::task_from_result();
@@ -158,6 +165,7 @@ namespace qingzhen::transfer {
         /// <param name="eptr">Pointer to the exception.</param>
         pplx::task<void> close(std::ios_base::openmode mode, std::exception_ptr exceptionPtr) override {
             if (this->_is_open) {
+				this->buf.pubsync();
                 this->buf.close();
                 this->_is_open = false;
             }
@@ -188,12 +196,13 @@ namespace qingzhen::transfer {
         /// <param name="count">The number of characters to write.</param>
         /// <returns>A <c>task</c> that holds the number of characters actually written, either 'count' or 0.</returns>
         pplx::task<size_t> putn(const _CharType *ptr, size_t count) override {
+			std::cout << "_putn:" << count << std::endl;
             if (this->_can_write) {
                 // need do it async?
                 auto s = this->buf.sputn(ptr, count);
                 current_pos += s;
                 return pplx::task_from_result<size_t>(static_cast<size_t>(s));
-            }
+            } 
             return pplx::task_from_result<size_t>(0);
         };
 
@@ -205,14 +214,21 @@ namespace qingzhen::transfer {
         /// <param name="count">The number of characters to write.</param>
         /// <returns>A <c>task</c> that holds the number of characters actually written, either 'count' or 0.</returns>
         pplx::task<size_t> putn_nocopy(const _CharType *ptr, size_t count) override {
-            if (this->_can_write) {
+			std::lock_guard<std::mutex> _mu(this->_buffer_mutex);
+			if (this->_can_write) {
                 // need do it async?
                 // hdd / ssd can finish write in few millisecond, so async call is unnecessary.
-                auto s = this->buf.sputn(ptr, count);
+                pos_type s = this->buf.sputn(ptr, count);
                 current_pos += s;
-                // std::cout << "current_pos:" << current_pos << std::endl;
                 return pplx::task_from_result<size_t>(static_cast<size_t>(s));
-            }
+			}
+			else {
+				// std::cout << "____________BUFFB" << std::endl;
+				for (size_t i = 0; i < count; i++) {
+					this->_buffer.push_back(ptr[i]);
+				}
+				
+			}
 
             return pplx::task<size_t>([count]() {
                 return count;
@@ -403,6 +419,8 @@ namespace qingzhen::transfer {
         /// a subsequent read will not succeed.
         /// </remarks>
         bool acquire(_Out_ _CharType *&ptr, _Out_ size_t &count) override {
+			ptr = nullptr;
+			count = 0;
             std::cout << "acquire" << std::endl;
             return true;
         };
@@ -429,7 +447,11 @@ namespace qingzhen::transfer {
         std::basic_filebuf<_CharType> buf;
         std::atomic_bool _is_open = false;
         std::atomic_bool _can_write = false;
+		std::mutex _buffer_mutex;
+		std::vector<_CharType> _buffer = std::vector<_CharType>();
         pos_type current_pos;
+		// bool _support_range;
+		// int64_t _end_index;
     };
 }
 

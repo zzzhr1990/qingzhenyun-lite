@@ -9,10 +9,15 @@
 #include <boost/log/trivial.hpp>
 #include <qingzhen/api/user_file_client.hpp>
 #include <qingzhen/transfer/basic_file_buf.h>
+#ifdef _WIN32
+#include <Windows.h>
+#include <winhttp.h>
+#endif // _WIN32
+
 
 using namespace qingzhen::transfer;
 
-const int MAX_THREAD = 1;
+const int MAX_THREAD = 5;
 
 const int MAX_ERROR_COUNT = 5;
 
@@ -79,8 +84,11 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
         return;
     }
     // we got file
-    BOOST_LOG_TRIVIAL(info) << _XPLATSTR("Download file: ") << task->remote_file()->path().c_str()
-                            << _XPLATSTR(" to: =>  ") << file_path.c_str();
+
+	BOOST_LOG_TRIVIAL(info) << ("Download file: ") << qingzhen::string_util::string_t_to_ansi(task->remote_file()->path())
+			<< " to: =>  " << qingzhen::string_util::string_t_to_ansi(file_path);
+
+   
 
     // split file
     if (cancellation_token.is_canceled()) {
@@ -98,11 +106,31 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
             qingzhen::path_util::clean_path(recover_file_path);
             return;
         }
-        if (std::filesystem::exists(file_temp_path) &&
-            std::filesystem::file_size(file_temp_path) > task->remote_file()->size()) {
-            qingzhen::path_util::clean_path(file_temp_path);
-            qingzhen::path_util::clean_path(recover_file_path);
-        }
+		if (std::filesystem::exists(file_temp_path) ){
+			auto fsize = std::filesystem::file_size(file_temp_path);
+			if (fsize > task->remote_file()->size()) {
+				qingzhen::path_util::clean_path(file_temp_path);
+				qingzhen::path_util::clean_path(recover_file_path);
+			} else if(!std::filesystem::exists(recover_file_path)){
+				file_hash_container fckc(file_temp_path);
+				auto check_res = fckc.hash_file(cancellation_token, false);
+				if (cancellation_token.is_canceled()) {
+					return;
+				}
+				if (check_res->hash() == task->remote_file()->hash()) {
+					if (!qingzhen::path_util::move_file(file_temp_path, file_path)) {
+						task->on_error_lock(_XPLATSTR("CANNOT_MOVE_DEST_FILE"), _XPLATSTR("Cannot move file to dest"), MAX_ERROR_COUNT);
+						return;
+					}
+					qingzhen::path_util::clean_path(recover_file_path);
+					task->success_with_lock();
+					return;
+				}
+			}
+		}
+            // std::filesystem::file_size(file_temp_path) > ) {
+            
+       
     } catch (...) {
         task->on_error_lock(_XPLATSTR("CANNOT_CHECK_FILE"), _XPLATSTR("Cannot check file"), MAX_ERROR_COUNT);
         return;
@@ -178,8 +206,6 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
         for (auto &s : *task->progress->list()) {
             auto &tst = test_queue->at(current_idx);
             if (!confirm || s->start_index() != tst->start_index() || tst->end_index() != s->end_index()) {
-                std::cout << "___NOT_MATCH: " << current_idx << " :=>" << s->start_index() << "x" << tst->start_index()
-                          << tst->end_index() << "x" << s->end_index() << std::endl;
                 confirm = false;
             }
             if (!confirm) {
@@ -188,8 +214,6 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
                 s->end_index = tst->end_index();
                 s->processed_index->store(tst->start_index());
 
-                std::cout << "___NOT_MATCH_STORE: " << current_idx << " :=>" << s->start_index() << "x: end: "
-                          << tst->end_index() << "x => " << s->processed_index->load() << std::endl;
             } else {
                 if (s->processed_index->load() > s->end_index() + 1) {
                     s->processed_index->store(s->start_index());
@@ -208,24 +232,13 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     }
 
 
-    // Okay. >>>>====>>
-    /*
-    BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
-    BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
-    BOOST_LOG_TRIVIAL(info) << "An informational severity message";
-    BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
-    BOOST_LOG_TRIVIAL(error) << "An error severity message";
-    BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
-     */
-
     //
     // alloc file
-    /*
+   
     if(!qingzhen::path_util::ensure_and_alloc_file(file_temp_path, task->remote_file()->size())){
         task->on_error_lock(_XPLATSTR("CANNOT_CREATE_TEMP_FILE"), _XPLATSTR("Cannot create temp file"), MAX_ERROR_COUNT);
         return;
     }
-     */
 
 
     if (task->remote_file()->size() < 1) {
@@ -257,7 +270,6 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     if (cancellation_token.is_canceled()) {
         return;
     }
-    BOOST_LOG_TRIVIAL(info) << _XPLATSTR("URL: ") << real_url << _XPLATSTR(" Can Range: " << can_range);
     if (!success) {
         task->on_error_lock(_XPLATSTR("CANNOT_PRE_FLIGHT_HEADERS"), _XPLATSTR("Cannot check download info"),
                             MAX_ERROR_COUNT);
@@ -280,14 +292,27 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
                 if (cancellation_token.is_canceled()) {
                     return false;
                 }
-                BOOST_LOG_TRIVIAL(error) << _XPLATSTR("Download part failed: ") << ex.what();
+                BOOST_LOG_TRIVIAL(error) << "Download part failed: " << ex.what();
             }
             return false;
         }));
     }
     task->update_status_with_lock(transfer_status::transfer);
+	bool all_success = true;
     try {
         auto ge = pplx::when_all(v.begin(), v.end()).get();
+		for (bool s : ge) {
+			if (!s) {
+				all_success = false;
+			}
+		}
+		if (!all_success) {
+			if (cancellation_token.is_canceled()) {
+				return;
+			}
+			task->on_error_lock(_XPLATSTR("DOWNLOAD_FILE_FAILED"), _XPLATSTR("Download file failed"), MAX_ERROR_COUNT);
+			return;
+		}
     } catch (const std::exception &ex) {
         if (cancellation_token.is_canceled()) {
             return;
@@ -298,6 +323,8 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     if (cancellation_token.is_canceled()) {
         return;
     }
+
+	
     //
     qingzhen::transfer::file_hash_container hash_container(file_temp_path);
     //
@@ -308,10 +335,12 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     if (hash_result->hash() != task->remote_file()->hash()) {
         task->on_error_lock(_XPLATSTR("HASH_NOT_MATCH"), _XPLATSTR("Hash not match"), MAX_ERROR_COUNT);
         // clean all
-        BOOST_LOG_TRIVIAL(error) << _XPLATSTR("Hash not match: local:") << hash_result->hash() << _XPLATSTR(" remote: ")
-                                 << task->remote_file()->hash();
+        BOOST_LOG_TRIVIAL(error) << "Hash not match: local:" << qingzhen::string_util::string_t_to_ansi(hash_result->hash()) << " remote: "
+                                 << qingzhen::string_util::string_t_to_ansi(task->remote_file()->hash()) << " ->" <<
+			task->remote_file()->size();
         task->progress->clean();
         qingzhen::path_util::clean_path(file_temp_path);
+		qingzhen::path_util::clean_path(recover_file_path);
         return;
     }
     // clean temp file
@@ -320,9 +349,10 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
     // move file
     if (!qingzhen::path_util::move_file(file_temp_path, file_path)) {
         task->on_error_lock(_XPLATSTR("CANNOT_MOVE_DEST_FILE"), _XPLATSTR("Cannot move file to dest"), MAX_ERROR_COUNT);
+		return;
     }
     task->success_with_lock();
-    BOOST_LOG_TRIVIAL(info) << _XPLATSTR("Download file complete: ") << real_url;
+    BOOST_LOG_TRIVIAL(info) << "Download file complete: " << qingzhen::string_util::string_t_to_ansi(real_url);
 }
 
 std::tuple<bool, bool, utility::string_t> simple_http_downloader::check_support_ranges(utility::string_t url_ori,
@@ -334,6 +364,7 @@ std::tuple<bool, bool, utility::string_t> simple_http_downloader::check_support_
     client_config.set_nativehandle_options([&](web::http::client::native_handle nativeHandle) {
         // Disable auto redirects
         DWORD dwOptionValue = WINHTTP_DISABLE_REDIRECTS;
+		
         BOOL sts = WinHttpSetOption(nativeHandle, WINHTTP_OPTION_DISABLE_FEATURE, &dwOptionValue, sizeof(dwOptionValue));
         if (!sts) {
             BOOST_LOG_TRIVIAL(error) << "WINHTTP_DISABLE_REDIRECTS failed.\n";
@@ -376,7 +407,7 @@ std::tuple<bool, bool, utility::string_t> simple_http_downloader::check_support_
                 ) {
             redirect_count++;
             if (redirect_count > 99) {
-                BOOST_LOG_TRIVIAL(error) << _XPLATSTR("Redirect too much");
+                BOOST_LOG_TRIVIAL(error) << "Redirect too much";
                 return std::make_tuple(false, false, url);
             }
             // Location
@@ -397,8 +428,8 @@ bool simple_http_downloader::start_download_single_part(const utility::string_t 
     auto &single_task = task->progress->list()->at(index);
     auto file_buf = new qingzhen::transfer::basic_file_buf<char>();
     if (!file_buf->open_file(path, single_task->processed_index->load(),
-                             std::ios::out | std::ios::binary | std::ios::ate)) {
-        BOOST_LOG_TRIVIAL(error) << _XPLATSTR("Cannot open dest file: ") << path.c_str();
+		std::ios::in | std::ios::out | std::ios::binary | std::ios::ate)) {
+        BOOST_LOG_TRIVIAL(error) << "Cannot open dest file: " << qingzhen::string_util::string_t_to_ansi(path.c_str());
         return true;
     }
 
@@ -409,22 +440,29 @@ bool simple_http_downloader::start_download_single_part(const utility::string_t 
     // std::ios::out | std::ios::binary
     const web::http::method mtd = web::http::methods::GET;
     web::http::client::http_client_config config;
+#ifdef _WIN32
+	config.set_nativehandle_options([&](web::http::client::native_handle nativeHandle) {
+		// Disable auto redirects
+		DWORD dwOptionValue = WINHTTP_DISABLE_REDIRECTS;
+
+		BOOL sts = WinHttpSetOption(nativeHandle, WINHTTP_OPTION_DISABLE_FEATURE, &dwOptionValue, sizeof(dwOptionValue));
+		if (!sts) {
+			BOOST_LOG_TRIVIAL(error) << "WINHTTP_DISABLE_REDIRECTS failed.\n";
+		}
+		});
+#endif
     config.set_timeout(std::chrono::seconds(30));
-    config.set_chunksize(1024 * 128);
+    // config.set_chunksize(1024 * 1024);
     web::http::client::http_client client(uri, config);
     web::http::http_request req(mtd);
     auto &headers = req.headers();
     headers.add(web::http::header_names::user_agent,
                 _XPLATSTR("Mozilla/5.0 (Windows NT 10.0; Win64; x64) QingzhenyunClient/0.01"));
     if (single_task->support_part()) {
-        auto st = _XPLATSTR("bytes=") + utility::conversions::to_string_t(
-                utility::conversions::usascii_to_utf16(std::to_string(single_task->processed_index->load())))
+        auto st = _XPLATSTR("bytes=") + utility::conversions::to_string_t(std::to_string(single_task->processed_index->load()))
                   + _XPLATSTR("-"
                               + utility::conversions::to_string_t(
-                utility::conversions::usascii_to_utf16(std::to_string(single_task->end_index())))
-                  );
-        BOOST_LOG_TRIVIAL(info) << _XPLATSTR("Part file: ") << single_task->part_id() << _XPLATSTR(" to: =>  ")
-                                << single_task->processed_index->load() << " : " << single_task->end_index();
+                std::to_string(single_task->end_index())));
         headers.add(web::http::header_names::range, st);
         if (single_task->processed_index->load() > single_task->end_index()) {
             return true;
@@ -450,7 +488,6 @@ bool simple_http_downloader::start_download_single_part(const utility::string_t 
                 last_bytes = off;
                 tsk_p->incr_counter(diff);
                 downloader->incr_global_counter(diff);
-                // BOOST_LOG_TRIVIAL(info) << _XPLATSTR("Download file: id: ") << single_task-> part_id() << _XPLATSTR(" F: ") << file_buf->getpos(std::ios::out) << _XPLATSTR(" / ") << single_task->end_index() << _XPLATSTR(" >> ") << fp.c_str();
 
             });
     req.set_response_stream(oss);
@@ -462,21 +499,35 @@ bool simple_http_downloader::start_download_single_part(const utility::string_t 
                     throw web::http::http_exception(9001);
                 } else {
                     auto headers = response.headers();
-                    BOOST_LOG_TRIVIAL(error) << single_task->part_id() << _XPLATSTR(" -> Response: ")
-                                             << headers[web::http::header_names::content_range];
-                    // web::http::http_headers g = response.headers();
-                    // for(const auto& xxx: g){
-                    //    std::cout << "Response length: " << xxx.first << " " << xxx.second << "  return code " << response.status_code() << std::endl;
-                    // }
                     file_buf->set_file_can_write(true);
                 }
                 return response.content_ready();
             }).then([file_buf](const web::http::http_response &response) -> pplx::task<void> {
         return file_buf->close(std::ios_base::out);
     });
-    cr.get();
+	try
+	{
+		cr.get();
+	}
+	catch (const std::exception& ex) {
+		if (!cancellation_token.is_canceled()) {
+			BOOST_LOG_TRIVIAL(error) << "Http error: " << ex.what();
+		}
+		return false;
+	}
+	if (cancellation_token.is_canceled()) {
+		return false;
+	}
     auto fin_off = file_buf->getpos(std::ios::out);
     single_task->processed_index->store(fin_off);
+	if (single_task->support_part()) {
+		auto ed_index = single_task->end_index();
+		if (single_task->end_index() > 0) {
+			if (fin_off <= ed_index) {
+				return false;
+			}
+		}
+	}
     return true;
 }
 
@@ -484,3 +535,24 @@ void simple_http_downloader::incr_global_counter(int64_t count) {
     this->_global_bytes_transfer.fetch_add(count);
 }
 
+void qingzhen::transfer::simple_http_downloader::refresh_counter()
+{
+	auto current = std::chrono::system_clock::now();
+	auto time_diff_in_sec = (current - _last_refresh_time) / std::chrono::seconds(1);
+	if (time_diff_in_sec < 1) {
+		return;
+	}
+	auto last_transfer = this->_global_bytes_transfer.load();
+	auto bytes_diff = last_transfer - this->_last_bytes_transfer;
+	if (bytes_diff < 0) {
+		bytes_diff = 0;
+	}
+	this->_last_bytes_transfer.store(last_transfer);
+	this->_last_refresh_time = current;
+	_speed_bytes_sec = bytes_diff / time_diff_in_sec;
+}
+
+int64_t qingzhen::transfer::simple_http_downloader::get_downloading_speed()
+{
+	return this->_speed_bytes_sec;
+}

@@ -6,11 +6,12 @@
 #include <qingzhen/api/user_file_client.hpp>
 #include <boost/log/trivial.hpp>
 #include <qingzhen/string_util.h>
+#include <boost/log/trivial.hpp>
 
 using namespace qingzhen::transfer;
 
 const int MAX_RETRY_TIME = 5;
-
+const int MAX_CONCURRENT_FILE = 5;
 
 transfer_item::transfer_item(const std::shared_ptr<qingzhen::api::file> &file,
                              const std::shared_ptr<std::filesystem::path> &dest,
@@ -125,7 +126,7 @@ void transfer_item::parse_download_task_sync(const pplx::cancellation_token &can
 }
 
 void transfer_item::_tick() {
-    const int MAX_CONCURRENT_FILE = 1;
+    
     size_t success = 0;
     // bool all_success = true;
     size_t paused_complete_state = 0;
@@ -163,8 +164,13 @@ void transfer_item::_tick() {
             int64_t bytes_total = 0;
             int64_t progress = 0;
             std::tie(bytes_down, bytes_total, progress) = sig_task->get_current_progress();
+			BOOST_LOG_TRIVIAL(info) << "File: " << qingzhen::string_util::string_t_to_ansi(sig_task->remote_file()->name())
+				<< " to: =>  " << " progress: " << progress << "% speed: "
+				<< qingzhen::string_util::string_t_to_ansi(qingzhen::string_util::pretty_bytes(sig_task->get_last_speed())) << "/s" << std::endl;
+			/*
             std::cout << "File: " << sig_task->remote_file()->name() << " progress: " << progress << " speed: "
                       << qingzhen::string_util::pretty_bytes(sig_task->get_last_speed()) << std::endl;
+					  */
         }
         // }
         count++;
@@ -174,10 +180,10 @@ void transfer_item::_tick() {
 
     if (paused_complete_state >= count) {
         this->_status = transfer_status::complete;
-        BOOST_LOG_TRIVIAL(info) << _XPLATSTR("task complete: ") << this->remote_file()->name().c_str();
+        BOOST_LOG_TRIVIAL(info) << "task complete: " << qingzhen::string_util::string_t_to_ansi(this->remote_file()->name().c_str());
         return;
     } else if (paused_complete_state + error_state >= count) {
-        BOOST_LOG_TRIVIAL(info) << _XPLATSTR("task error: ") << this->remote_file()->name().c_str();
+        BOOST_LOG_TRIVIAL(info) << "task error: " << qingzhen::string_util::string_t_to_ansi(this->remote_file()->name());
         this->_status = transfer_status::fatal_error;
     }
 }

@@ -40,6 +40,7 @@ std::shared_ptr<std::vector<std::unique_ptr<part_progress_info>>> transfer_progr
 
 void transfer_progress::load_from_file(const std::filesystem::path &file_path) {
     std::lock_guard<std::mutex> _op(this->mutex);
+	this->reset();
     this->_path = std::filesystem::path(file_path);
     utility::ifstream_t ist;
     try {
@@ -125,7 +126,6 @@ bool transfer_progress::_from_json(const web::json::value &value) {
                 return false;
             }
             if (part_id != idx) {
-                std::cout << part_id << " : " << idx << " dis con" << std::endl;
                 return false;
             }
             if (v.has_number_field(_XPLATSTR("processed_index"))) {
@@ -154,7 +154,6 @@ void transfer_progress::dump_to_file() {
         return;
     }
     // fix
-    std::cout << _path.c_str() << std::endl;
     utility::ofstream_t ost;
     try {
         ost.open(_path, std::ios_base::out | std::ios_base::trunc);

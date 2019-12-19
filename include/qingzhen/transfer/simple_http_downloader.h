@@ -31,10 +31,20 @@ namespace qingzhen::transfer {
 
         void incr_global_counter(int64_t count);
 
+		void refresh_counter();
+
+		int64_t get_downloading_speed();
+
     private:
         simple_http_downloader() = default;
 
         std::atomic_int64_t _global_bytes_transfer = 0;
+
+		std::chrono::system_clock::time_point _last_refresh_time = std::chrono::system_clock::now();
+
+		std::atomic_int64_t _last_bytes_transfer = 0;
+
+		int64_t _speed_bytes_sec = 0;
     };
 }
 #endif //QINGZHENYUN_LITE_SIMPLE_HTTP_DOWNLOADER_H

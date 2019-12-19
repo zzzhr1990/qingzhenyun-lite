@@ -28,6 +28,8 @@ namespace qingzhen::transfer {
         // void on_read_update(bool switch_);
 
     private:
+		std::unique_ptr<transfer_result>
+		_hash_file(const pplx::cancellation_token& cancellation_token, bool calc_md5_and_sha1);
         std::filebuf buf;
         std::filesystem::path file_path;
         const int BUFFER_SIZE = 1048576;
