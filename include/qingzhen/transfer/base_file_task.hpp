@@ -9,6 +9,7 @@
 #include <qingzhen/properity.hpp>
 #include <qingzhen/transfer/transfer_entity.h>
 #include <pplx/pplxtasks.h>
+#include <qingzhen/string_util.h>
 
 namespace qingzhen::transfer {
     template<class _Tp>
@@ -63,7 +64,7 @@ namespace qingzhen::transfer {
 
         virtual void on_error_lock(const utility::string_t &error_referer, const utility::string_t &error_message,
                                    int max_error_count) {
-            std::cout << "______________on error: " << error_referer.c_str() << std::endl;
+            std::cout << "______________on error: " << qingzhen::string_util::string_t_to_ansi(error_referer.c_str()) << std::endl;
             std::lock_guard<std::mutex> _error(this->mutex);
             this->_error_count.fetch_add(1);
             if (this->_error_count > max_error_count) {
@@ -132,7 +133,7 @@ namespace qingzhen::transfer {
             // auto token_s = this->cancellation_token_source.get_token();
             //
             this->cancellation_token_source = pplx::cancellation_token_source::create_linked_source(token);
-            this->_status = transfer_status::pre_checking;
+			this->_status = transfer_status::pre_checking;
             // this->_error_count.store(0);
             auto ptr = get_ptr();
             auto cancellation_token = this->cancellation_token_source.get_token();

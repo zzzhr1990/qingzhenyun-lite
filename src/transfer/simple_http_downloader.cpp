@@ -242,6 +242,13 @@ void simple_http_downloader::start(const std::shared_ptr<single_file_task> &task
 
 
     if (task->remote_file()->size() < 1) {
+		task->progress->clean();
+		// move file
+		if (!qingzhen::path_util::move_file(file_temp_path, file_path)) {
+			task->on_error_lock(_XPLATSTR("CANNOT_MOVE_DEST_FILE"), _XPLATSTR("Cannot move file to dest"), MAX_ERROR_COUNT);
+			return;
+		}
+		task->success_with_lock();
         return;
     }
     // start download...

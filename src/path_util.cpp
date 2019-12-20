@@ -32,6 +32,7 @@ bool path_util::ensure_directory(const std::filesystem::path &path) {
         }
         // if
     } catch (std::exception &) {
+		// std::cout << ex.what() << std::endl;
         return false;
     }
     return true;
