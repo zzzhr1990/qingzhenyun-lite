@@ -10,7 +10,8 @@
 
 using namespace qingzhen::transfer;
 
-qingzhen::transfer::file_hash_container::file_hash_container(std::filesystem::path path) : file_path(std::move(path)) {
+qingzhen::transfer::file_hash_container::file_hash_container(std::filesystem::path path) : file_path(std::move(path)),
+                                                                                           file_read_buffer{0} {
     // this->md5_ctx = new MD5_CTX;
     // MD5_Init(this->md5_ctx);
     // MD5_U
@@ -173,8 +174,8 @@ file_hash_container::~file_hash_container() {
             this->buf.close();
         } catch (std::exception &ex) {}
     }
-    delete[] this->file_read_buffer;
-    this->file_read_buffer = nullptr;
+    // delete[] this->file_read_buffer;
+    // this->file_read_buffer = nullptr;
 
 }
 

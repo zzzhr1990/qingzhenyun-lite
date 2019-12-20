@@ -11,8 +11,8 @@
 
 
 utility::string_t qingzhen::string_util::pretty_bytes(const int64_t &bytes) {
-    using ppy = decltype(_XPLATSTR('a'));
-    const ppy *suffixes[7];
+    using _plat_form = decltype(_XPLATSTR('a'));
+    const _plat_form *suffixes[7];
     suffixes[0] = _XPLATSTR("B");
     suffixes[1] = _XPLATSTR("KB");
     suffixes[2] = _XPLATSTR("MB");
@@ -48,13 +48,12 @@ utility::string_t qingzhen::string_util::ansi_to_string_t(const std::string& str
 	return utility::conversions::to_string_t(string);
 }
 
-std::string qingzhen::string_util::string_t_to_ansi(const utility::string_t& str)
-{
-	// utility::conversions::to
+std::string qingzhen::string_util::string_t_to_ansi(const utility::string_t &str) {
+    // utility::conversions::to
 #ifdef _WIN32
-	return qingzhen::string_util::string_t_to_ansi(str.c_str());
+    return qingzhen::string_util::string_t_to_ansi(str.c_str());
 #endif
-	return utility::conversions::to_utf8string(str);
+    return str;
 }
 
 std::string qingzhen::string_util::string_t_to_ansi(const wchar_t* str)
@@ -75,7 +74,8 @@ std::string qingzhen::string_util::string_t_to_ansi(const wchar_t* str)
 	free(strTo);
 	return res;
 #else
-	return utility::conversions::to_utf8string(str);
+    std::wcout << str << std::endl;
+    throw std::runtime_error("not imp");
 #endif // _WIN32
 
 }

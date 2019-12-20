@@ -114,3 +114,19 @@ bool transfer_manager::_add_download(const std::shared_ptr<qingzhen::api::file> 
     return true;
 }
 
+bool transfer_manager::_add_upload(const std::shared_ptr<qingzhen::api::file> &remote_parent,
+                                   const std::filesystem::path &source) {
+    std::lock_guard<std::mutex> _dml(this->mutex);
+    // calc
+    for (auto &single : this->_upload_queue) {
+        std::filesystem::path p = single->local_parent_path().operator*();
+        if (p == source) {
+            return false;
+        }
+    }
+    // auto file_size = std::filesystem::file_size(source);
+    this->_upload_queue.emplace_back(
+            transfer_item::create(remote_parent, source, transfer_direction::upload, 0));
+    return true;
+}
+

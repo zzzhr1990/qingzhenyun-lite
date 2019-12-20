@@ -51,6 +51,9 @@ namespace qingzhen::transfer {
         bool
         _add_download(const std::shared_ptr<qingzhen::api::file> &source, const std::filesystem::path &destination);
 
+        bool
+        _add_upload(const std::shared_ptr<qingzhen::api::file> &source, const std::filesystem::path &destination);
+
         std::mutex mutex;
         pplx::cancellation_token_source cancellation_token_source;
         boost::asio::io_context io = boost::asio::io_context();
@@ -59,6 +62,7 @@ namespace qingzhen::transfer {
         std::atomic_bool shutdown_flag = false;
         std::atomic_bool init_flag = false;
         std::vector<std::shared_ptr<transfer_item>> _download_queue;
+        std::vector<std::shared_ptr<transfer_item>> _upload_queue;
         std::atomic_int concurrent_task = 1;
     };
 }

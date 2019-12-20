@@ -31,7 +31,6 @@ int main() {
     std::cout << "Starting..." << std::endl;
     //
 
-
     auto user_result = qingzhen::api::user_api_client::login(user_token, token_source.get_token()).get();
 
     if (!user_result.success()) {

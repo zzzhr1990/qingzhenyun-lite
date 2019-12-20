@@ -28,13 +28,14 @@ namespace qingzhen::transfer {
         // void on_read_update(bool switch_);
 
     private:
-		std::unique_ptr<transfer_result>
-		_hash_file(const pplx::cancellation_token& cancellation_token, bool calc_md5_and_sha1);
+        std::unique_ptr<transfer_result>
+        _hash_file(const pplx::cancellation_token &cancellation_token, bool calc_md5_and_sha1);
+
         std::filebuf buf;
         std::filesystem::path file_path;
         const int BUFFER_SIZE = 1048576;
         const int WCS_BLOCK_SIZE = 1048576 * 4;
-        char *file_read_buffer = new char[BUFFER_SIZE]; // 1MB
+        char file_read_buffer[1048576]; // BUFFER_SIZE
         // MD5_CTX *md5_ctx = nullptr;
     };
 
